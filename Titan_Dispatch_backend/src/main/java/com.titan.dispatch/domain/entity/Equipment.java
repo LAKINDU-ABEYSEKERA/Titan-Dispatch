@@ -3,6 +3,7 @@ package com.titan.dispatch.domain.entity;
 import com.titan.dispatch.domain.enums.EquipmentStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.envers.Audited;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Audited
 public class Equipment extends Auditable {
 
     @Id
@@ -31,6 +33,9 @@ public class Equipment extends Auditable {
 
     @Column(name = "current_engine_hours", precision = 10, scale = 2)
     private BigDecimal currentEngineHours;
+
+    @Column(name = "internal_hourly_rate", precision = 10, scale = 2, nullable = false)
+    private BigDecimal internalHourlyRate;
 
     @Column(name = "insurance_expiration", nullable = false)
     private LocalDate insuranceExpiration;

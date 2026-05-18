@@ -3,6 +3,7 @@ package com.titan.dispatch.domain.entity;
 import com.titan.dispatch.domain.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.util.UUID;
 
 @Entity
@@ -12,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SystemUser {
+public class SystemUser extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -30,5 +31,5 @@ public class SystemUser {
     private UserRole role;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive = true;
 }

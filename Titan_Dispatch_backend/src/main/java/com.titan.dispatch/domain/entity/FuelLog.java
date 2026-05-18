@@ -1,23 +1,22 @@
 package com.titan.dispatch.domain.entity;
 
-import com.titan.dispatch.domain.enums.DispatchStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.RelationTargetAuditMode;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
-@Table(name = "dispatch_allocation")
+@Table(name = "fuel_log")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Audited
-public class DispatchAllocation extends Auditable {
+public class FuelLog extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,16 +32,12 @@ public class DispatchAllocation extends Auditable {
     @JoinColumn(name = "operator_id", nullable = false)
     private Operator operator;
 
-    @Column(name = "job_site_id", nullable = false)
-    private UUID jobSiteId;
+    @Column(name = "gallons_added", precision = 8, scale = 2, nullable = false)
+    private BigDecimal gallonsAdded;
 
-    @Column(name = "start_date", nullable = false)
-    private LocalDateTime startDate;
+    @Column(name = "total_cost", precision = 10, scale = 2, nullable = false)
+    private BigDecimal totalCost;
 
-    @Column(name = "requires_heavy_transport", nullable = false)
-    private Boolean requiresHeavyTransport;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private DispatchStatus status;
+    @Column(name = "engine_hours_at_fill_up", precision = 10, scale = 2, nullable = false)
+    private BigDecimal engineHoursAtFillUp;
 }
