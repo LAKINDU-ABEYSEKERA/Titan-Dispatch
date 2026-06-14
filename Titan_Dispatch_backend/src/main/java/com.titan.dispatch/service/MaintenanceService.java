@@ -14,12 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MaintenanceService {
 
-    private final MaintenanceLogRepository maintenanceLogRepo;
     private final EquipmentRepository equipmentRepo;
+    private final MaintenanceLogRepository maintenanceLogRepo;
 
     @Transactional
     public void submitMaintenanceLog(CreateMaintenanceLogCommand command) {
-        Equipment equipment = equipmentRepo.findById(command.equipmentId()).orElseThrow();
+        // Better error handling for the API response
+        Equipment equipment = equipmentRepo.findById(command.equipmentId())
+                .orElseThrow(() -> new IllegalArgumentException("Equipment not found"));
 
         MaintenanceLog log = MaintenanceLog.builder()
                 .equipment(equipment)

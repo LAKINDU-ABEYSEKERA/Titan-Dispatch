@@ -6,6 +6,7 @@ import org.hibernate.envers.Audited;
 import org.hibernate.envers.RelationTargetAuditMode;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -40,4 +41,7 @@ public class FuelLog extends Auditable {
 
     @Column(name = "engine_hours_at_fill_up", precision = 10, scale = 2, nullable = false)
     private BigDecimal engineHoursAtFillUp;
+
+    @Column(name = "fill_date", nullable = false)
+    private LocalDate fillDate;
 }

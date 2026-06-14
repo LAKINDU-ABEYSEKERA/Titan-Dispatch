@@ -1,5 +1,6 @@
 package com.titan.dispatch.domain.entity;
 
+import com.titan.dispatch.domain.enums.OperatorStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,4 +29,9 @@ public class Operator extends Auditable {
 
     @Column(name = "license_expiration", nullable = false)
     private LocalDate licenseExpiration;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private OperatorStatus status = OperatorStatus.ACTIVE;
 }

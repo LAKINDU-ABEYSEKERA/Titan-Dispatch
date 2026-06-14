@@ -1,0 +1,2 @@
+ALTER TABLE dispatch_allocation_aud
+ADD COLUMN end_date TIMESTAMP WITHOUT TIME ZONE;

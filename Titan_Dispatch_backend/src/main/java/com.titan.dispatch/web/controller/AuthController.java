@@ -77,6 +77,28 @@ public class AuthController {
                 .body(Map.of("access_token", accessToken));
     }
 
+    @PostMapping("/logout")
+    @Transactional
+    public ResponseEntity<Void> logout(java.security.Principal principal) {
+        if (principal != null) {
+            SystemUser user = userRepository.findByUsername(principal.getName()).orElseThrow();
+            refreshTokenRepository.deleteByUserId(user.getId());
+        }
+
+        // Obliterate the refresh cookie
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/api/v1/auth/refresh")
+                .maxAge(0) // 0 max-age deletes it immediately
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
+    }
+
     @PostMapping("/refresh")
     @Transactional
     public ResponseEntity<Map<String, String>> refresh(HttpServletRequest request) {

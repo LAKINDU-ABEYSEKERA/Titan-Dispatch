@@ -39,6 +39,9 @@ public class DispatchAllocation extends Auditable {
     @Column(name = "start_date", nullable = false)
     private LocalDateTime startDate;
 
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
+
     @Column(name = "requires_heavy_transport", nullable = false)
     private Boolean requiresHeavyTransport;
 
