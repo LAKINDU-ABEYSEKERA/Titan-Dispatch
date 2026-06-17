@@ -1,0 +1,71 @@
+<div class="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans text-slate-200">
+  
+  <div class="max-w-md w-full bg-slate-800 rounded-xl shadow-2xl p-8 border border-slate-700/50">
+    
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-black tracking-wider text-white uppercase">Titan Dispatch</h1>
+      <p class="text-slate-400 mt-2 text-xs tracking-wide">Enterprise Logistics Security Gate</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      
+      <div>
+        <label for="username" class="block text-xs font-bold uppercase tracking-wider text-slate-400">Operator ID / Username</label>
+        <input 
+          id="username" 
+          type="text" 
+          formControlName="username"
+          class="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+          placeholder="e.g., OP-4920"
+        />
+        @if (loginForm.controls.username.touched && loginForm.controls.username.invalid) {
+          <p class="mt-1 text-xs text-red-400 font-medium">Valid identity string is required.</p>
+        }
+      </div>
+
+      <div>
+        <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-400">System Passkey</label>
+        <input 
+          id="password" 
+          type="password" 
+          formControlName="password"
+          class="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+          placeholder="••••••••"
+        />
+        @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
+          <p class="mt-1 text-xs text-red-400 font-medium">Security key must be at least 6 characters.</p>
+        }
+      </div>
+
+      <button 
+        type="submit" 
+        [disabled]="isLoading()"
+        class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-widest py-3.5 px-4 rounded-lg shadow-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex justify-center items-center cursor-pointer">
+        @if (isLoading()) {
+          <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Authorizing Session...
+        } @else {
+          Initialize Console
+        }
+      </button>
+    </form>
+  </div>
+
+  @if (toastMessage()) {
+    <div class="fixed bottom-6 right-6 max-w-sm w-full bg-slate-950 border-l-4 border-red-500 text-white p-4 rounded-lg shadow-2xl flex justify-between items-start border border-slate-800 animate-fade-in-up">
+      <div class="flex items-start space-x-3">
+        <span class="text-red-500 font-bold text-lg leading-none">⚠️</span>
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-red-400">System Communication Failure [{{ toastMessage()?.status }}]</h3>
+          <p class="mt-1 text-xs text-slate-300 font-medium leading-relaxed">{{ toastMessage()?.detail }}</p>
+        </div>
+      </div>
+      <button (click)="dismissToast()" class="text-slate-500 hover:text-white transition-colors text-sm pl-2 cursor-pointer">
+        ✕
+      </button>
+    </div>
+  }
+</div>
