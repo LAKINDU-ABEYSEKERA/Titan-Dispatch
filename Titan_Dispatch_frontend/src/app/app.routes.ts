@@ -18,8 +18,8 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        // Perfectly aligned to your terminal's nested layout output
-        loadComponent: () => import('./features/dashboard/dashboard/dashboard').then(m => m.Dashboard)
+        // Mounts our fleet inventory data dashboard directly as the terminal homepage
+        loadComponent: () => import('./features/equipment/equipment').then(m => m.Equipment)
       }
     ]
   },

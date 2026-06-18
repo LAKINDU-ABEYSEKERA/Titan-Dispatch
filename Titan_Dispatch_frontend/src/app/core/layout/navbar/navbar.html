@@ -1,1 +1,20 @@
-<p>navbar works!</p>
+<header class="h-16 bg-slate-900/50 border-b border-slate-800 backdrop-blur px-6 flex items-center justify-between w-full">
+  <div class="flex items-center space-x-4">
+    <div class="flex items-center space-x-2 bg-slate-950 px-3 py-1.5 rounded-md border border-slate-800">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Telematics Webhook: Connected</span>
+    </div>
+  </div>
+
+  <div class="flex items-center space-x-4">
+    <div class="text-right">
+      <p class="text-xs font-bold text-white uppercase tracking-wide">HQ-Dispatcher</p>
+      <p class="text-[10px] font-mono text-slate-500">Role: ADMIN</p>
+    </div>
+    <button 
+      (click)="onSignOut()" 
+      class="bg-slate-800 hover:bg-red-900/40 hover:text-red-400 border border-slate-700/60 text-slate-300 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded transition-all cursor-pointer">
+      Terminal Off
+    </button>
+  </div>
+</header>

@@ -1,0 +1,103 @@
+<div class="space-y-6" style="animation: var(--animate-fade-in-up)">
+  
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-black text-white uppercase tracking-wider">Active Operations</h1>
+      <p class="text-xs text-slate-400 font-mono mt-1">Live dispatch allocation console</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button (click)="fetchDispatches()" [disabled]="isLoading()" class="titan-btn-secondary">
+        🔄 Refresh
+      </button>
+      <button class="titan-btn-primary">
+        + New Allocation
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="titan-card">
+      <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Operations</p>
+      <p class="text-3xl font-black text-white mt-1">{{ stats().total }}</p>
+    </div>
+    <div class="titan-card border-emerald-500/20">
+      <p class="text-[10px] uppercase font-bold text-emerald-500 tracking-wider">Active</p>
+      <p class="text-3xl font-black text-white mt-1">{{ stats().active }}</p>
+    </div>
+    <div class="titan-card border-amber-500/20">
+      <p class="text-[10px] uppercase font-bold text-amber-500 tracking-wider">Scheduled</p>
+      <p class="text-3xl font-black text-white mt-1">{{ stats().scheduled }}</p>
+    </div>
+    <div class="titan-card border-slate-600/20">
+      <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Completed</p>
+      <p class="text-3xl font-black text-white mt-1">{{ stats().completed }}</p>
+    </div>
+  </div>
+
+  <div class="titan-panel !p-0 overflow-hidden">
+    <div class="overflow-x-auto w-full">
+      <table class="min-w-full border-collapse text-left">
+        <thead>
+          <tr>
+            <th class="titan-table-header">Reference ID</th>
+            <th class="titan-table-header">Asset Identity</th>
+            <th class="titan-table-header">Operator</th>
+            <th class="titan-table-header">Project Code</th>
+            <th class="titan-table-header">Status</th>
+            <th class="titan-table-header">Commencement</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60 font-mono">
+          
+          @if (isLoading()) {
+            @for (skeleton of [1, 2, 3, 4]; track skeleton) {
+              <tr class="animate-pulse">
+                <td class="titan-table-cell"><div class="h-4 bg-slate-800 rounded w-16"></div></td>
+                <td class="titan-table-cell"><div class="h-4 bg-slate-800 rounded w-20"></div></td>
+                <td class="titan-table-cell"><div class="h-4 bg-slate-800 rounded w-24"></div></td>
+                <td class="titan-table-cell"><div class="h-4 bg-slate-800 rounded w-16"></div></td>
+                <td class="titan-table-cell"><div class="h-6 bg-slate-800 rounded w-20"></div></td>
+                <td class="titan-table-cell"><div class="h-4 bg-slate-800 rounded w-32"></div></td>
+              </tr>
+            }
+          } @else {
+            @for (job of dispatches(); track job.id) {
+              <tr class="hover:bg-slate-900/50 transition-colors">
+                <td class="titan-table-cell text-xs text-slate-500">#{{ job.id.substring(0, 8) }}</td>
+                <td class="titan-table-cell font-bold text-white">{{ job.equipmentTag }}</td>
+                <td class="titan-table-cell">{{ job.operatorName }}</td>
+                <td class="titan-table-cell text-blue-400 font-bold">{{ job.projectCode }}</td>
+                <td class="titan-table-cell">
+                  @switch (job.status) {
+                    @case ('ACTIVE') { <span class="titan-badge-success"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active</span> }
+                    @case ('SCHEDULED') { <span class="titan-badge-warning"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Scheduled</span> }
+                    @case ('COMPLETED') { <span class="titan-badge-info">Completed</span> }
+                    @case ('CANCELLED') { <span class="titan-badge-danger">Cancelled</span> }
+                  }
+                </td>
+                <td class="titan-table-cell text-slate-400 text-xs">{{ job.startDate | date:'MMM d, y, h:mm a' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="text-center py-12 text-slate-500 font-mono text-xs">
+                  ⚠️ No operations actively logged in sector.
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  @if (toastMessage()) {
+    <div class="fixed bottom-6 right-6 max-w-sm w-full bg-slate-950 border-l-4 border-red-500 text-white p-4 rounded-lg shadow-2xl flex items-start gap-3 border border-slate-800" style="animation: var(--animate-fade-in-up)">
+      <span class="text-red-500 font-bold text-lg leading-none">🚨</span>
+      <div class="flex-1">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-red-400">System Error [{{ toastMessage()?.status }}]</h3>
+        <p class="mt-1 text-xs text-slate-300 font-medium leading-relaxed">{{ toastMessage()?.detail }}</p>
+      </div>
+      <button (click)="dismissToast()" class="text-slate-500 hover:text-white transition-colors cursor-pointer text-sm">✕</button>
+    </div>
+  }
+</div>

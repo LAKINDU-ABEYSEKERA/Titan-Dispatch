@@ -1,7 +1,81 @@
 @import "tailwindcss";
 
-// Global style adjustments if necessary
-body {
-  margin: 0;
-  background-color: #0f172a; // slate-900 baseline
+/* ==========================================================================
+   TITAN DISPATCH: ENTERPRISE DESIGN SYSTEM CORE
+   ========================================================================== */
+
+@theme {
+  /* --- Semantic Palette --- */
+  --color-titan-bg-deep: #020617;     /* slate-950 */
+  --color-titan-bg-surface: #0f172a;  /* slate-900 */
+  --color-titan-bg-elevated: #1e293b; /* slate-800 */
+  --color-titan-border: #334155;      /* slate-700 */
+
+  /* --- Brand & Status Colors --- */
+  --color-titan-primary: #2563eb;     /* blue-600 */
+  --color-titan-primary-hover: #1d4ed8; 
+  --color-titan-success: #10b981;     /* emerald-500 */
+  --color-titan-warning: #f59e0b;     /* amber-500 */
+  --color-titan-danger: #ef4444;      /* red-500 */
+  
+  /* --- Typography --- */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* --- Animations --- */
+  --animate-fade-in-up: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-200 antialiased font-sans;
+    background-color: var(--color-titan-bg-deep);
+  }
+}
+
+/* ==========================================================================
+   TITAN COMPONENT LIBRARY (Use these to guarantee consistency)
+   ========================================================================== */
+@layer components {
+  /* Containers */
+  .titan-panel {
+    @apply bg-slate-900 border border-slate-800 rounded-xl shadow-xl p-6 backdrop-blur-sm;
+  }
+  .titan-card {
+    @apply bg-slate-800/50 border border-slate-700/50 rounded-lg p-5 transition-all hover:bg-slate-800;
+  }
+
+  /* Data Tables */
+  .titan-table-header {
+    @apply text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-950/80 px-4 py-3 border-b border-slate-800 text-left;
+  }
+  .titan-table-cell {
+    @apply px-4 py-4 text-sm text-slate-300 border-b border-slate-800/40;
+  }
+
+  /* Buttons */
+  .titan-btn-primary {
+    @apply bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-widest px-4 py-2.5 rounded-lg shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer;
+  }
+  .titan-btn-secondary {
+    @apply bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold uppercase tracking-widest px-4 py-2.5 rounded-lg transition-colors disabled:opacity-50 cursor-pointer;
+  }
+
+  /* Status Badges (Strict mapping to System Context Enums) */
+  .titan-badge {
+    @apply px-2.5 py-1 rounded-md text-[10px] font-bold font-mono uppercase tracking-widest border flex inline-flex items-center gap-1.5 w-max;
+  }
+  /* Mapped: ACTIVE, AVAILABLE, COMPLETED */
+  .titan-badge-success { @apply titan-badge bg-emerald-500/10 text-emerald-400 border-emerald-500/20; }
+  /* Mapped: DOWN, CANCELLED */
+  .titan-badge-danger { @apply titan-badge bg-red-500/10 text-red-400 border-red-500/20; }
+  /* Mapped: MAINTENANCE, SCHEDULED */
+  .titan-badge-warning { @apply titan-badge bg-amber-500/10 text-amber-400 border-amber-500/20; }
+  /* Mapped: DISPATCHED */
+  .titan-badge-info { @apply titan-badge bg-blue-500/10 text-blue-400 border-blue-500/20; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
