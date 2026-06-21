@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '../app/core/guards/auth-guard';
+import { authGuard } from './core/guards/auth-guard';
 
 export const routes: Routes = [
   {
@@ -18,11 +18,15 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        // Mounts our fleet inventory data dashboard directly as the terminal homepage
+        loadComponent: () => import('./features/dispatch/dispatch-list/dispatch-list').then(m => m.DispatchList)
+      },
+      {
+        path: 'equipment',
         loadComponent: () => import('./features/equipment/equipment').then(m => m.Equipment)
       }
     ]
   },
+  
   {
     path: '**',
     redirectTo: 'login'

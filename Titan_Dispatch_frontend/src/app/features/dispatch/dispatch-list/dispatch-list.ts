@@ -3,24 +3,28 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DispatchService } from '../../../core/services/dispatch';
 import { ProblemDetail } from '../../../core/models/domain';
+// 1. Import the CreateDispatch component
+import { CreateDispatch } from '../create-dispatch/create-dispatch';
 
 @Component({
   selector: 'app-dispatch-list',
   standalone: true,
-  imports: [DatePipe],
+  // 2. Add CreateDispatch to the imports array
+  imports: [DatePipe, CreateDispatch],
   templateUrl: './dispatch-list.html',
   styleUrl: './dispatch-list.scss'
 })
 export class DispatchList implements OnInit {
   private readonly dispatchService = inject(DispatchService);
 
-  // Connect to service signals
   readonly dispatches = this.dispatchService.dispatches;
   readonly stats = this.dispatchService.stats;
 
-  // View state signals
   readonly isLoading = signal<boolean>(false);
   readonly toastMessage = signal<{ detail: string; status: number } | null>(null);
+  
+  // 3. Create a Signal to manage the drawer state
+  readonly isDrawerOpen = signal<boolean>(false);
 
   ngOnInit(): void {
     this.fetchDispatches();

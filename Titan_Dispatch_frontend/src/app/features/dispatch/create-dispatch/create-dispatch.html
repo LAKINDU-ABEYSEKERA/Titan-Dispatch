@@ -1,0 +1,93 @@
+@if (isOpen()) {
+  <div 
+    class="fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-sm transition-opacity"
+    (click)="closeDrawer()">
+  </div>
+}
+
+<div 
+  class="fixed top-0 end-0 z-[80] h-full w-full max-w-md transform transition-all duration-300 ease-in-out border-l border-slate-800 bg-slate-950 shadow-2xl flex flex-col"
+  [class.translate-x-full]="!isOpen()"
+  [class.translate-x-0]="isOpen()"
+  tabindex="-1">
+  
+  <div class="flex justify-between items-center py-4 px-6 border-b border-slate-800 bg-slate-900/50">
+    <div>
+      <h3 class="font-black text-white uppercase tracking-wider">Allocate Resource</h3>
+      <p class="text-[10px] font-mono text-slate-400 mt-0.5">Titan System Command Console</p>
+    </div>
+    <button (click)="closeDrawer()" class="text-slate-500 hover:text-white transition-colors cursor-pointer">
+      ✕
+    </button>
+  </div>
+
+  <div class="p-6 overflow-y-auto flex-1">
+    @if (isHydrating()) {
+      <div class="space-y-4 animate-pulse">
+        <div class="h-10 bg-slate-800 rounded"></div>
+        <div class="h-10 bg-slate-800 rounded"></div>
+        <div class="h-10 bg-slate-800 rounded"></div>
+      </div>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+        
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Machinery Asset</label>
+          <select formControlName="equipmentId" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="" disabled selected>-- Select Available Unit --</option>
+            @for (eq of equipmentOpts(); track eq.id) {
+              <option [value]="eq.id">{{ eq.assetTag }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Active Operator</label>
+          <select formControlName="operatorId" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="" disabled selected>-- Select Licensed Personnel --</option>
+            @for (op of operatorOpts(); track op.id) {
+              <option [value]="op.id">{{ op.lastName }}, {{ op.firstName }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Destination Site</label>
+          <select formControlName="jobSiteId" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="" disabled selected>-- Select Project Code --</option>
+            @for (site of jobSiteOpts(); track site.id) {
+              <option [value]="site.id">{{ site.projectCode }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Commencement Date</label>
+          <input type="datetime-local" formControlName="startDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <input type="checkbox" id="transport" formControlName="requiresHeavyTransport" class="w-4 h-4 bg-slate-900 border-slate-700 rounded focus:ring-blue-500 cursor-pointer">
+          <label for="transport" class="text-sm font-medium text-slate-300 cursor-pointer">Requires Lowboy/Heavy Transport</label>
+        </div>
+
+        <div class="pt-6 border-t border-slate-800 flex justify-end gap-3">
+          <button type="button" (click)="closeDrawer()" class="titan-btn-secondary">Cancel</button>
+          <button type="submit" [disabled]="isSubmitting()" class="titan-btn-primary">
+            @if (isSubmitting()) { Syncing... } @else { Engage Dispatch }
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+
+  @if (toastMessage()) {
+    <div class="absolute bottom-4 left-4 right-4 bg-red-900/90 border border-red-500 text-white p-3 rounded shadow-lg flex items-start gap-2 backdrop-blur-sm z-50">
+      <span class="text-red-400 font-bold">🚨</span>
+      <div class="flex-1">
+        <p class="text-xs font-bold uppercase text-red-200">System Rejected</p>
+        <p class="text-xs mt-0.5">{{ toastMessage()?.detail }}</p>
+      </div>
+    </div>
+  }
+</div>

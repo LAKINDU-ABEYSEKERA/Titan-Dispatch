@@ -62,17 +62,23 @@
   }
 
   /* Status Badges (Strict mapping to System Context Enums) */
-  .titan-badge {
-    @apply px-2.5 py-1 rounded-md text-[10px] font-bold font-mono uppercase tracking-widest border flex inline-flex items-center gap-1.5 w-max;
+  .titan-badge,
+  .titan-badge-success,
+  .titan-badge-danger,
+  .titan-badge-warning,
+  .titan-badge-info {
+    @apply px-2.5 py-1 rounded-md text-[10px] font-bold font-mono uppercase tracking-widest border inline-flex items-center gap-1.5 w-max;
   }
+  
   /* Mapped: ACTIVE, AVAILABLE, COMPLETED */
-  .titan-badge-success { @apply titan-badge bg-emerald-500/10 text-emerald-400 border-emerald-500/20; }
+  .titan-badge-success { @apply bg-emerald-500/10 text-emerald-400 border-emerald-500/20; }
   /* Mapped: DOWN, CANCELLED */
-  .titan-badge-danger { @apply titan-badge bg-red-500/10 text-red-400 border-red-500/20; }
+  .titan-badge-danger { @apply bg-red-500/10 text-red-400 border-red-500/20; }
   /* Mapped: MAINTENANCE, SCHEDULED */
-  .titan-badge-warning { @apply titan-badge bg-amber-500/10 text-amber-400 border-amber-500/20; }
+  .titan-badge-warning { @apply bg-amber-500/10 text-amber-400 border-amber-500/20; }
   /* Mapped: DISPATCHED */
-  .titan-badge-info { @apply titan-badge bg-blue-500/10 text-blue-400 border-blue-500/20; }
+  .titan-badge-info { @apply bg-blue-500/10 text-blue-400 border-blue-500/20; }
+
 }
 
 @keyframes fadeInUp {
