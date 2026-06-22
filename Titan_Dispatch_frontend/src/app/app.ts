@@ -16,7 +16,7 @@ export class AppComponent implements OnInit {
     // DEV-ONLY: Automatically negotiates a real token to satisfy backend 401 checks and routing guards
     if (isDevMode() && !this.authService.accessToken()) {
       // NOTE: Replace with your actual local testing credentials
-      this.authService.login({ username: 'dev_operator', password: 'password123' }).subscribe({
+      this.authService.login({ username: 'dev_operator', password: 'titan123' }).subscribe({
         next: () => this.router.navigate(['/dashboard'])
       });
     }
