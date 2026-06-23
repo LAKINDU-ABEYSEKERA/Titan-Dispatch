@@ -111,3 +111,9 @@ export interface FuelLogResponse {
   engineHoursAtFillUp: number;
   fillDate: string;
 }
+
+export interface DispatchCompletionPayload {
+  dispatchId: string;
+  endEngineHours: number;
+  completionNotes?: string;
+}

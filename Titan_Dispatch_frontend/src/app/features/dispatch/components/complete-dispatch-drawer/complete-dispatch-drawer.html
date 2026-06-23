@@ -1,0 +1,59 @@
+<button type="button" (click)="open()" class="m-4 py-3 px-4 inline-flex items-center gap-x-2 text-sm font-bold rounded-lg titan-btn-primary shadow-lg hover:shadow-blue-500/30 transition-all">
+  Complete Dispatch
+</button>
+
+@if (isOpen()) {
+  <div class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300" 
+       (click)="close()"></div>
+}
+
+<div class="fixed top-0 end-0 transition-all duration-300 transform h-full max-w-md w-full z-50 titan-panel titan-border border-l shadow-2xl flex flex-col"
+     [class.translate-x-full]="!isOpen()"
+     [class.translate-x-0]="isOpen()"
+     role="dialog" tabindex="-1">
+  
+  <div class="flex justify-between items-center py-4 px-6 titan-border border-b bg-black/20">
+    <h3 class="font-bold text-lg text-white tracking-widest">
+      DISPATCH COMPLETION
+    </h3>
+    <button type="button" (click)="close()" class="size-8 inline-flex justify-center items-center rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors focus:outline-none">
+      <span class="sr-only">Close</span>
+      <svg class="shrink-0 size-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+      </svg>
+    </button>
+  </div>
+  
+  <div class="p-6 flex-1 overflow-y-auto space-y-6">
+    
+    <div>
+      <label for="engineHours" class="block text-sm font-medium text-gray-300 mb-2">Final Engine Hours</label>
+      <div class="relative">
+        <input type="number" id="engineHours" 
+               class="block w-full rounded-md bg-black/40 border border-gray-700 text-white px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-600" 
+               placeholder="e.g., 4510.5">
+        <div class="absolute inset-y-0 end-0 flex items-center pointer-events-none pe-4">
+          <span class="text-gray-500 text-sm">hrs</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label for="notes" class="block text-sm font-medium text-gray-300 mb-2">Completion Notes</label>
+      <textarea id="notes" rows="4" 
+                class="block w-full rounded-md bg-black/40 border border-gray-700 text-white px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-600 resize-none" 
+                placeholder="Record any damage, delays, or issues during operation..."></textarea>
+    </div>
+
+  </div>
+
+  <div class="p-6 titan-border border-t bg-black/20 flex justify-end gap-x-3">
+    <button type="button" (click)="close()" class="py-2 px-4 rounded-lg text-sm font-medium border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors">
+      Cancel
+    </button>
+    <button type="button" class="py-2 px-6 rounded-lg text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/50">
+      Finalize & Cost
+    </button>
+  </div>
+</div>

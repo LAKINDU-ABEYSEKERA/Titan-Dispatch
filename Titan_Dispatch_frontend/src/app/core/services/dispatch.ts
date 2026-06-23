@@ -2,6 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { DispatchSummary } from '../models/domain';
+import { DispatchCompletionPayload } from '../models/domain';
 
 @Injectable({
   providedIn: 'root'
@@ -29,6 +30,13 @@ export class DispatchService {
   getDispatches(): Observable<DispatchSummary[]> {
     return this.http.get<DispatchSummary[]>('/api/v1/dispatch').pipe(
       tap(data => this._dispatches.set(data))
+    );
+  }
+
+  completeDispatch(payload: DispatchCompletionPayload): Observable<any> {
+    return this.http.post(`/api/v1/dispatch/${payload.dispatchId}/complete`, payload).pipe(
+      tap(() => console.log(`[DispatchService] Successfully completed dispatch ${payload.dispatchId}`)),
+      // If you have a global error handler, catchError goes here
     );
   }
 }
