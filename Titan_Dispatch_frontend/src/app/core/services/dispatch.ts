@@ -2,7 +2,6 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { DispatchSummary } from '../models/domain';
-import { DispatchCompletionPayload } from '../models/domain';
 
 @Injectable({
   providedIn: 'root'
@@ -33,10 +32,11 @@ export class DispatchService {
     );
   }
 
-  completeDispatch(payload: DispatchCompletionPayload): Observable<any> {
-    return this.http.post(`/api/v1/dispatch/${payload.dispatchId}/complete`, payload).pipe(
-      tap(() => console.log(`[DispatchService] Successfully completed dispatch ${payload.dispatchId}`)),
-      // If you have a global error handler, catchError goes here
+ 
+  completeDispatch(dispatchId: string, payload: { endEngineHours: number; completionNotes?: string }): Observable<any> {
+    // Note: Check if your backend uses POST or PUT here. I left it as POST to match your original code!
+    return this.http.post(`/api/v1/dispatch/${dispatchId}/complete`, payload).pipe(
+      tap(() => console.log(`[DispatchService] Successfully completed dispatch ${dispatchId}`))
     );
   }
 }
