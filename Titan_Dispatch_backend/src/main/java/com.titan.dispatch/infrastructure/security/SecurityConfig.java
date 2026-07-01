@@ -36,12 +36,16 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                // NEW: Attach the CORS configuration so the HttpOnly cookie works
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+
+                        // Explicitly permit both ADMIN and DISPATCH roles access to core application data paths
+                        .requestMatchers("/api/v1/dispatch/form-data/**").hasAnyRole("ADMIN", "DISPATCH")
+                        .requestMatchers("/api/v1/dispatch/**").hasAnyRole("ADMIN", "DISPATCH")
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -71,15 +75,12 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // NEW: CORS Bean to explicitly allow the Angular frontend and cookies
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Explicitly allow the Angular local development port
         configuration.setAllowedOrigins(List.of("http://localhost:4200"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        // Mandatory for HttpOnly Refresh Tokens to be sent by the browser
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

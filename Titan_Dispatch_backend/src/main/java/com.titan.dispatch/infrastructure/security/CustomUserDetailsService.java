@@ -4,7 +4,6 @@ import com.titan.dispatch.domain.entity.SystemUser;
 import com.titan.dispatch.repository.SystemUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,14 +22,18 @@ public class CustomUserDetailsService implements UserDetailsService {
         SystemUser user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        return new User(
-                user.getId().toString(), // Principal becomes the UUID
+        // Enforce the standard Spring Security authority format prefix
+        String roleAuthority = user.getRole().getAuthority();
+        if (!roleAuthority.startsWith("ROLE_")) {
+            roleAuthority = "ROLE_" + roleAuthority;
+        }
+
+        return new CustomUserDetails(
+                user.getId(),
+                user.getUsername(), // Core subject identifier used for token lookups
                 user.getPasswordHash(),
                 user.getIsActive(),
-                true,
-                true,
-                true,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getRole().getAuthority()))
+                Collections.singletonList(new SimpleGrantedAuthority(roleAuthority))
         );
     }
 }

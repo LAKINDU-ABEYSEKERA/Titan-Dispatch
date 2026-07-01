@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -56,8 +57,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-        } catch (Exception e) {
-            // Log token validation failures if necessary, proceed to 403/401 naturally
+        } catch (UsernameNotFoundException e) {
+            this.logger.warn("Security principal record evaluation mismatch in database: " + e.getMessage());
+        } catch (io.jsonwebtoken.JwtException e) {
+            this.logger.warn("Inbound network token verification trace failure: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);
