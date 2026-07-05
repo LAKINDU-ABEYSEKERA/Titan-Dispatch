@@ -22,15 +22,15 @@ public class DispatchController {
     private final DispatchService dispatchService;
     private final QueryService queryService;
 
-
-    @PreAuthorize("hasRole('DISPATCH') and @securityEvaluator.canManageJobSite(authentication, #request.jobSiteId())")
+    // FIX: Changed hasRole to hasAnyRole so it can accept multiple arguments
+    @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH') and @securityEvaluator.canManageJobSite(authentication, #request.jobSiteId())")
     @PostMapping("/allocate")
     public ResponseEntity<Void> allocate(@Valid @RequestBody CreateDispatchCommand request) {
         dispatchService.createDispatch(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PreAuthorize("hasRole('DISPATCH')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
     @PutMapping("/{id}/complete")
     public ResponseEntity<Void> completeDispatch(@PathVariable UUID id, @Valid @RequestBody CompleteDispatchCommand request) {
         dispatchService.completeDispatch(id, request);
@@ -41,23 +41,5 @@ public class DispatchController {
     @GetMapping
     public ResponseEntity<List<DispatchSummaryResponse>> getDispatches(@RequestParam(required = false) DispatchStatus status) {
         return ResponseEntity.ok(queryService.getDispatches(status));
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
-    @GetMapping("/form-data/equipment")
-    public ResponseEntity<List<EquipmentDropdownResponse>> getAvailableEquipment() {
-        return ResponseEntity.ok(queryService.getAvailableEquipment());
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
-    @GetMapping("/form-data/operators")
-    public ResponseEntity<List<OperatorDropdownResponse>> getActiveOperators() {
-        return ResponseEntity.ok(queryService.getActiveOperators());
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
-    @GetMapping("/form-data/job-sites")
-    public ResponseEntity<List<JobSiteDropdownResponse>> getAllJobSites() {
-        return ResponseEntity.ok(queryService.getAllJobSites());
     }
 }

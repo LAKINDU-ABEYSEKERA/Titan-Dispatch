@@ -1,5 +1,6 @@
 package com.titan.dispatch.infrastructure.config;
 
+import com.titan.dispatch.infrastructure.security.CustomUserDetails;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,11 +20,11 @@ public class AuditorAwareImpl implements AuditorAware<UUID> {
             return Optional.empty();
         }
 
-        // Assuming your JwtAuthenticationFilter sets the UUID as the principal string
-        try {
-            return Optional.of(UUID.fromString((String) authentication.getPrincipal()));
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
+        // FIX: Safely extract the UUID from our CustomUserDetails wrapper
+        if (authentication.getPrincipal() instanceof CustomUserDetails customUserDetails) {
+            return Optional.of(customUserDetails.getId());
         }
+
+        return Optional.empty();
     }
 }

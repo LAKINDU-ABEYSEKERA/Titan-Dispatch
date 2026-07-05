@@ -18,6 +18,7 @@ spring:
       max-lifetime: 1200000
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: validate
     properties:
@@ -57,3 +58,7 @@ jwt:
   secret: ${JWT_SECRET:8a4b6c9d2e1f5g8h4j7k9l2m4n6p8q1r3s5t7v9w2x4y6z8A2B4C6D8E1F3G5H7J9}
   access-expiration-ms: 900000     # 15 minutes
   refresh-expiration-ms: 604800000 # 7 days
+
+logging:
+  level:
+    org.hibernate.metamodel.internal.MetadataContext: FATAL
