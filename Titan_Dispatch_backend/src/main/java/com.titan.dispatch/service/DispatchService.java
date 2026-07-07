@@ -39,8 +39,6 @@ public class DispatchService {
     private final SafetyInterlockPolicy safetyInterlockPolicy;
     private final OutboxEventRepository outboxRepo;
     private final ObjectMapper objectMapper;
-
-    // NEW: Injected to track business metrics
     private final MeterRegistry meterRegistry;
 
     @Transactional
@@ -49,7 +47,14 @@ public class DispatchService {
         Operator operator = operatorRepo.findById(command.operatorId()).orElseThrow();
 
         safetyInterlockPolicy.validate(equipment, operator);
+
+        // Lock the equipment immediately so it cannot be double-booked
         equipment.setStatus(EquipmentStatus.DISPATCHED);
+
+        // Time-aware status assignment based on the clock
+        DispatchStatus initialStatus = command.startDate().isAfter(LocalDateTime.now())
+                ? DispatchStatus.SCHEDULED
+                : DispatchStatus.ACTIVE;
 
         DispatchAllocation allocation = DispatchAllocation.builder()
                 .equipment(equipment)
@@ -57,19 +62,56 @@ public class DispatchService {
                 .jobSiteId(command.jobSiteId())
                 .startDate(command.startDate())
                 .requiresHeavyTransport(command.requiresHeavyTransport())
-                .status(DispatchStatus.ACTIVE)
+                .status(initialStatus)
                 .build();
 
         DispatchAllocation savedAllocation = dispatchRepo.save(allocation);
 
-        // NEW: Increment the active dispatch counter
         meterRegistry.counter("titan.dispatch.created").increment();
         return savedAllocation;
     }
 
     @Transactional
+    public void activateDispatch(UUID dispatchId) {
+        DispatchAllocation dispatch = dispatchRepo.findById(dispatchId).orElseThrow();
+
+        if (dispatch.getStatus() != DispatchStatus.SCHEDULED && dispatch.getStatus() != DispatchStatus.PENDING) {
+            throw new IllegalStateException("Only scheduled or pending dispatches can be activated.");
+        }
+
+        dispatch.setStatus(DispatchStatus.ACTIVE);
+        dispatchRepo.save(dispatch);
+
+        log.info("Dispatch {} manually activated.", dispatchId);
+    }
+
+    @Transactional
+    public void cancelDispatch(UUID dispatchId) {
+        DispatchAllocation dispatch = dispatchRepo.findById(dispatchId).orElseThrow();
+
+        if (dispatch.getStatus() == DispatchStatus.COMPLETED || dispatch.getStatus() == DispatchStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot cancel a dispatch that is already completed or cancelled.");
+        }
+
+        // 1. Mark dispatch as cancelled and record the timestamp
+        dispatch.setStatus(DispatchStatus.CANCELLED);
+        dispatch.setEndDate(LocalDateTime.now());
+
+        // 2. Critical: Release the equipment back into the available pool
+        Equipment equipment = dispatch.getEquipment();
+        equipment.setStatus(EquipmentStatus.AVAILABLE);
+
+        equipmentRepo.save(equipment);
+        dispatchRepo.save(dispatch);
+
+        meterRegistry.counter("titan.dispatch.cancelled").increment();
+        log.info("Dispatch {} was cancelled. Equipment {} released.", dispatchId, equipment.getAssetTag());
+    }
+
+    @Transactional
     public void completeDispatch(UUID dispatchId, CompleteDispatchCommand command) {
         DispatchAllocation dispatch = dispatchRepo.findById(dispatchId).orElseThrow();
+
         if (dispatch.getStatus() != DispatchStatus.ACTIVE) {
             throw new IllegalStateException("Only active dispatches can be completed.");
         }
@@ -106,7 +148,6 @@ public class DispatchService {
                     .build();
             outboxRepo.save(event);
 
-            // NEW: Track completed dispatches and record the total cost generated
             meterRegistry.counter("titan.dispatch.completed").increment();
             meterRegistry.summary("titan.dispatch.revenue").record(totalJobCost.doubleValue());
 

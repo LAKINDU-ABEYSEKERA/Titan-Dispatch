@@ -1,16 +1,15 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DispatchService } from '../../../core/services/dispatch';
 import { ProblemDetail } from '../../../core/models/domain';
-// 1. Import the CreateDispatch component
 import { CreateDispatch } from '../create-dispatch/create-dispatch';
+import { CompleteDispatchDrawer } from '../components/complete-dispatch-drawer/complete-dispatch-drawer';
 
 @Component({
   selector: 'app-dispatch-list',
   standalone: true,
-  // 2. Add CreateDispatch to the imports array
-  imports: [DatePipe, CreateDispatch],
+  imports: [DatePipe, CreateDispatch, CompleteDispatchDrawer],
   templateUrl: './dispatch-list.html',
   styleUrl: './dispatch-list.scss'
 })
@@ -23,11 +22,41 @@ export class DispatchList implements OnInit {
   readonly isLoading = signal<boolean>(false);
   readonly toastMessage = signal<{ detail: string; status: number } | null>(null);
   
-  // 3. Create a Signal to manage the drawer state
   readonly isDrawerOpen = signal<boolean>(false);
+  readonly completeDrawer = viewChild.required(CompleteDispatchDrawer);
 
   ngOnInit(): void {
     this.fetchDispatches();
+  }
+
+  openCompleteDrawer(dispatchId: string): void {
+    this.completeDrawer().open(dispatchId);
+  }
+
+  activateJob(dispatchId: string): void {
+    if (!confirm('Are you sure you want to engage this asset?')) return;
+    
+    this.isLoading.set(true);
+    this.dispatchService.activateDispatch(dispatchId).subscribe({
+      next: () => this.fetchDispatches(),
+      error: (err: HttpErrorResponse) => {
+        this.isLoading.set(false);
+        this.handleError(err);
+      }
+    });
+  }
+
+  cancelJob(dispatchId: string): void {
+    if (!confirm('WARNING: Are you sure you want to cancel this dispatch? This will immediately release the equipment back into the available pool.')) return;
+    
+    this.isLoading.set(true);
+    this.dispatchService.cancelDispatch(dispatchId).subscribe({
+      next: () => this.fetchDispatches(),
+      error: (err: HttpErrorResponse) => {
+        this.isLoading.set(false);
+        this.handleError(err);
+      }
+    });
   }
 
   fetchDispatches(): void {
@@ -48,7 +77,7 @@ export class DispatchList implements OnInit {
       const problem = err.error as ProblemDetail;
       this.toastMessage.set({ detail: problem.detail, status: problem.status });
     } else {
-      this.toastMessage.set({ detail: 'Failed to retrieve dispatch log from Titan core.', status: err.status || 500 });
+      this.toastMessage.set({ detail: 'Failed to communicate with Titan core.', status: err.status || 500 });
     }
     setTimeout(() => this.toastMessage.set(null), 6000);
   }

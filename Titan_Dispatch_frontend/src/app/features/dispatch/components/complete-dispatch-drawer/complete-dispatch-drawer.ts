@@ -1,6 +1,7 @@
 import { Component, inject, signal, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DispatchService } from '../../../../core/services/dispatch';
+import { HttpErrorResponse } from '@angular/common/http';
+import { DispatchService, CompleteDispatchCommand } from '../../../../core/services/dispatch';
 
 @Component({
   selector: 'app-complete-dispatch-drawer',
@@ -22,15 +23,15 @@ export class CompleteDispatchDrawer {
   // Local state for the targeted dispatch
   activeDispatchId = signal<string | null>(null);
 
+  // Strict mapping to match the Java DTO (endHours only)
   completionForm = this.fb.nonNullable.group({
-    endEngineHours: [0, [Validators.required, Validators.min(0)]],
-    completionNotes: ['']
+    endHours: [0, [Validators.required, Validators.min(0.1)]]
   });
 
   // Called by the parent component, passing the specific row ID
   open(dispatchId: string) {
     this.activeDispatchId.set(dispatchId);
-    this.completionForm.reset();
+    this.completionForm.reset({ endHours: 0 });
     this.errorMessage.set(null);
     this.isOpen.set(true);
   }
@@ -41,12 +42,16 @@ export class CompleteDispatchDrawer {
   }
 
   submit() {
-    if (this.completionForm.invalid || !this.activeDispatchId()) return;
+    if (this.completionForm.invalid || !this.activeDispatchId()) {
+      this.completionForm.markAllAsTouched();
+      return;
+    }
 
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    const payload = this.completionForm.getRawValue();
+    // Cast explicitly to ensure type safety matching the interface
+    const payload: CompleteDispatchCommand = this.completionForm.getRawValue();
 
     this.dispatchService.completeDispatch(this.activeDispatchId()!, payload).subscribe({
       next: () => {
@@ -54,9 +59,10 @@ export class CompleteDispatchDrawer {
         this.dispatchCompleted.emit(); // Tell parent to refresh grid
         this.close();
       },
-      error: (err: Error) => {
+      error: (err: HttpErrorResponse) => {
         this.isLoading.set(false);
-        this.errorMessage.set(err.message); // Display Spring Boot's validation error
+        // Display Spring Boot's validation error or a fallback message
+        this.errorMessage.set(err.error?.detail || 'Failed to complete dispatch. Please check system logs.');
       }
     });
   }

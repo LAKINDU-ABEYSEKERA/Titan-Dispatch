@@ -4,5 +4,6 @@ public enum DispatchStatus {
     PENDING,   // Created, but equipment hasn't moved yet
     ACTIVE,    // Equipment is currently on the job site
     COMPLETED, // Job is done, ready for dynamic costing
-    CANCELLED  // Dispatch was revoked before or during execution
+    CANCELLED,// Dispatch was revoked before or during execution
+    SCHEDULED
 }

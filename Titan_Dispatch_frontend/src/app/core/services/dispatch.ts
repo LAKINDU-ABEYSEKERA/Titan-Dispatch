@@ -3,19 +3,20 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { DispatchSummary } from '../models/domain';
 
+export interface CompleteDispatchCommand {
+  endHours: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class DispatchService {
   private readonly http = inject(HttpClient);
 
-  // Core state signal
   private readonly _dispatches = signal<DispatchSummary[]>([]);
 
-  // Public projections
   readonly dispatches = computed(() => this._dispatches());
   
-  // Computed statistics for the dashboard cards
   readonly stats = computed(() => {
     const list = this._dispatches();
     return {
@@ -32,10 +33,20 @@ export class DispatchService {
     );
   }
 
- 
-  completeDispatch(dispatchId: string, payload: { endEngineHours: number; completionNotes?: string }): Observable<any> {
-    // Note: Check if your backend uses POST or PUT here. I left it as POST to match your original code!
-    return this.http.post(`/api/v1/dispatch/${dispatchId}/complete`, payload).pipe(
+  activateDispatch(dispatchId: string): Observable<void> {
+    return this.http.put<void>(`/api/v1/dispatch/${dispatchId}/activate`, {}).pipe(
+      tap(() => console.log(`[DispatchService] Activated dispatch ${dispatchId}`))
+    );
+  }
+
+  cancelDispatch(dispatchId: string): Observable<void> {
+    return this.http.put<void>(`/api/v1/dispatch/${dispatchId}/cancel`, {}).pipe(
+      tap(() => console.log(`[DispatchService] Cancelled dispatch ${dispatchId}`))
+    );
+  }
+
+  completeDispatch(dispatchId: string, payload: CompleteDispatchCommand): Observable<void> {
+    return this.http.put<void>(`/api/v1/dispatch/${dispatchId}/complete`, payload).pipe(
       tap(() => console.log(`[DispatchService] Successfully completed dispatch ${dispatchId}`))
     );
   }

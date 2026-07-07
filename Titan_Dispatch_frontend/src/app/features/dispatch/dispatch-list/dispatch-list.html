@@ -9,7 +9,7 @@
       <button (click)="fetchDispatches()" [disabled]="isLoading()" class="titan-btn-secondary">
         🔄 Refresh
       </button>
-      <button class="titan-btn-primary">
+      <button (click)="isDrawerOpen.set(true)" class="titan-btn-primary">
         + New Allocation
       </button>
     </div>
@@ -45,6 +45,7 @@
             <th class="titan-table-header">Project Code</th>
             <th class="titan-table-header">Status</th>
             <th class="titan-table-header">Commencement</th>
+            <th class="titan-table-header text-right">Command</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-800/60 font-mono">
@@ -58,11 +59,12 @@
                 <td class="titan-table-cell"><div class="h-4 bg-slate-800 rounded w-16"></div></td>
                 <td class="titan-table-cell"><div class="h-6 bg-slate-800 rounded w-20"></div></td>
                 <td class="titan-table-cell"><div class="h-4 bg-slate-800 rounded w-32"></div></td>
+                <td class="titan-table-cell"><div class="h-6 bg-slate-800 rounded w-20 ml-auto"></div></td>
               </tr>
             }
           } @else {
             @for (job of dispatches(); track job.id) {
-              <tr class="hover:bg-slate-900/50 transition-colors">
+              <tr class="hover:bg-slate-900/50 transition-colors group">
                 <td class="titan-table-cell text-xs text-slate-500">#{{ job.id.substring(0, 8) }}</td>
                 <td class="titan-table-cell font-bold text-white">{{ job.equipmentTag }}</td>
                 <td class="titan-table-cell">{{ job.operatorName }}</td>
@@ -71,15 +73,43 @@
                   @switch (job.status) {
                     @case ('ACTIVE') { <span class="titan-badge-success"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active</span> }
                     @case ('SCHEDULED') { <span class="titan-badge-warning"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Scheduled</span> }
+                    @case ('PENDING') { <span class="titan-badge-warning">Pending</span> }
                     @case ('COMPLETED') { <span class="titan-badge-info">Completed</span> }
                     @case ('CANCELLED') { <span class="titan-badge-danger">Cancelled</span> }
                   }
                 </td>
                 <td class="titan-table-cell text-slate-400 text-xs">{{ job.startDate | date:'MMM d, y, h:mm a' }}</td>
+                
+                <td class="titan-table-cell text-right space-x-2">
+                  <!-- Both SCHEDULED and PENDING can be Activated or Cancelled -->
+                  @if (job.status === 'SCHEDULED' || job.status === 'PENDING') {
+                    <button (click)="activateJob(job.id)" 
+                            class="text-[10px] uppercase font-bold tracking-wider bg-emerald-600/20 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 px-3 py-1.5 rounded transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
+                      ▶ Start Job
+                    </button>
+                    <button (click)="cancelJob(job.id)" 
+                            class="text-[10px] uppercase font-bold tracking-wider bg-red-600/20 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/30 px-3 py-1.5 rounded transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
+                      ✕ Cancel
+                    </button>
+                  } 
+                  <!-- ACTIVE jobs can be Completed or Cancelled -->
+                  @else if (job.status === 'ACTIVE') {
+                    <button (click)="openCompleteDrawer(job.id)" 
+                            class="text-[10px] uppercase font-bold tracking-wider bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white border border-blue-500/30 px-3 py-1.5 rounded transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
+                      ■ Complete
+                    </button>
+                    <button (click)="cancelJob(job.id)" 
+                            class="text-[10px] uppercase font-bold tracking-wider bg-red-600/20 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/30 px-3 py-1.5 rounded transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
+                      ✕ Cancel
+                    </button>
+                  } @else {
+                    <span class="text-slate-700 text-xs">-</span>
+                  }
+                </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="6" class="text-center py-12 text-slate-500 font-mono text-xs">
+                <td colspan="7" class="text-center py-12 text-slate-500 font-mono text-xs">
                   ⚠️ No operations actively logged in sector.
                 </td>
               </tr>
@@ -102,17 +132,12 @@
   }
 </div>
 
-<div class="flex items-center gap-3">
-  <button (click)="fetchDispatches()" [disabled]="isLoading()" class="titan-btn-secondary">
-    🔄 Refresh
-  </button>
-  <button (click)="isDrawerOpen.set(true)" class="titan-btn-primary">
-    + New Allocation
-  </button>
-</div>
-
 <app-create-dispatch 
   [open]="isDrawerOpen()" 
   (closed)="isDrawerOpen.set(false)" 
   (success)="fetchDispatches()">
 </app-create-dispatch>
+
+<app-complete-dispatch-drawer 
+  (dispatchCompleted)="fetchDispatches()">
+</app-complete-dispatch-drawer>

@@ -22,7 +22,6 @@ public class DispatchController {
     private final DispatchService dispatchService;
     private final QueryService queryService;
 
-    // FIX: Changed hasRole to hasAnyRole so it can accept multiple arguments
     @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH') and @securityEvaluator.canManageJobSite(authentication, #request.jobSiteId())")
     @PostMapping("/allocate")
     public ResponseEntity<Void> allocate(@Valid @RequestBody CreateDispatchCommand request) {
@@ -31,9 +30,23 @@ public class DispatchController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<Void> activateDispatch(@PathVariable UUID id) {
+        dispatchService.activateDispatch(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
     @PutMapping("/{id}/complete")
     public ResponseEntity<Void> completeDispatch(@PathVariable UUID id, @Valid @RequestBody CompleteDispatchCommand request) {
         dispatchService.completeDispatch(id, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelDispatch(@PathVariable UUID id) {
+        dispatchService.cancelDispatch(id);
         return ResponseEntity.ok().build();
     }
 
