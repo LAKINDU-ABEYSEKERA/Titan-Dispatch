@@ -1,12 +1,13 @@
 import { Component, inject, signal, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, } from '@angular/common/http';
 import { DispatchService, CompleteDispatchCommand } from '../../../../core/services/dispatch';
+import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-complete-dispatch-drawer',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DecimalPipe],
   templateUrl: './complete-dispatch-drawer.html'
 })
 export class CompleteDispatchDrawer {
@@ -22,17 +23,28 @@ export class CompleteDispatchDrawer {
   
   // Local state for the targeted dispatch
   activeDispatchId = signal<string | null>(null);
+  baselineHours = signal<number>(0);
 
   // Strict mapping to match the Java DTO (endHours only)
   completionForm = this.fb.nonNullable.group({
-    endHours: [0, [Validators.required, Validators.min(0.1)]]
+    endHours: [0, [Validators.required]] // Min validator is set dynamically
   });
 
-  // Called by the parent component, passing the specific row ID
-  open(dispatchId: string) {
+  // UPGRADED: Called by the parent component, passing the specific row ID and the baseline hours
+  open(dispatchId: string, startEngineHours: number) {
     this.activeDispatchId.set(dispatchId);
-    this.completionForm.reset({ endHours: 0 });
+    this.baselineHours.set(startEngineHours);
     this.errorMessage.set(null);
+    
+    // Dynamically set the validation rule based on the specific equipment's history
+    this.completionForm.controls.endHours.setValidators([
+      Validators.required,
+      Validators.min(startEngineHours + 0.1)
+    ]);
+    
+    // Pre-fill the form with the known baseline to save typing
+    this.completionForm.reset({ endHours: startEngineHours });
+    
     this.isOpen.set(true);
   }
 

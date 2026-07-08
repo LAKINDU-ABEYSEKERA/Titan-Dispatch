@@ -29,8 +29,8 @@ export class DispatchList implements OnInit {
     this.fetchDispatches();
   }
 
-  openCompleteDrawer(dispatchId: string): void {
-    this.completeDrawer().open(dispatchId);
+  openCompleteDrawer(dispatchId: string, startEngineHours: number): void {
+    this.completeDrawer().open(dispatchId, startEngineHours);
   }
 
   activateJob(dispatchId: string): void {
@@ -85,4 +85,6 @@ export class DispatchList implements OnInit {
   dismissToast(): void {
     this.toastMessage.set(null);
   }
+
+  
 }

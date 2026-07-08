@@ -27,16 +27,25 @@
       
       <div>
         <label for="engineHours" class="block text-sm font-medium text-gray-300 mb-2">Final Engine Hours</label>
+        
+        <!-- NEW: Baseline display -->
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3 mb-4 flex justify-between items-center">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Start Hours Baseline</span>
+          <span class="text-sm font-mono text-blue-400 font-bold">{{ baselineHours() | number:'1.1-1' }}</span>
+        </div>
+
         <div class="relative">
           <input type="number" formControlName="endHours" step="0.1" id="engineHours"
-                 class="block w-full rounded-md bg-black/40 border border-gray-700 text-white px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-600" 
+                 class="block w-full rounded-md bg-black/40 border border-gray-700 text-white px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-600 font-mono text-lg" 
                  placeholder="e.g., 4510.5">
           <div class="absolute inset-y-0 end-0 flex items-center pointer-events-none pe-4">
-            <span class="text-gray-500 text-sm">hrs</span>
+            <span class="text-gray-500 text-sm font-bold uppercase">hrs</span>
           </div>
         </div>
+        
+        <!-- DYNAMIC ERROR MSG -->
         @if (completionForm.controls.endHours.touched && completionForm.controls.endHours.invalid) {
-           <p class="text-red-500 text-xs mt-2">Valid end hours (greater than 0) are required.</p>
+           <p class="text-red-500 text-xs mt-2 font-medium">Final hours must be strictly greater than {{ baselineHours() }}.</p>
         }
       </div>
 

@@ -15,7 +15,7 @@ import { CompleteDispatchDrawer } from '../../features/dispatch/components/compl
           <p class="text-sm text-slate-400">DOZER-D8T - Site Alpha</p>
         </div>
         
-        <button (click)="drawer.open('DSP-1234')" 
+        <button (click)="drawer.open('DSP-1234', 1450.0)"
                 class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded transition-colors shadow-lg">
           Complete Dispatch
         </button>

@@ -59,6 +59,7 @@ export interface DispatchSummary {
   status: DispatchStatus; 
   startDate: string; // ISO-8601 LocalDateTime
   endDate?: string;  // ISO-8601 LocalDateTime
+  startEngineHours: number;
 }
 
 export interface CreateDispatchCommand {
