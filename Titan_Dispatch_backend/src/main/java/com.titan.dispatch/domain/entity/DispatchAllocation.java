@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.RelationTargetAuditMode;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -48,4 +49,7 @@ public class DispatchAllocation extends Auditable {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private DispatchStatus status;
+
+    @Column(name = "start_engine_hours", nullable = false)
+    private BigDecimal startEngineHours;
 }

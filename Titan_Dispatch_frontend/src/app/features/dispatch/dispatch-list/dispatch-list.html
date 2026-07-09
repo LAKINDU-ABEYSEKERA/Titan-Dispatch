@@ -72,7 +72,19 @@
                 <td class="titan-table-cell">
                   @switch (job.status) {
                     @case ('ACTIVE') { <span class="titan-badge-success"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active</span> }
-                    @case ('SCHEDULED') { <span class="titan-badge-warning"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Scheduled</span> }
+                    
+                    <!-- NEW: OVERDUE LOGIC ADDED HERE -->
+                    @case ('SCHEDULED') { 
+                      @if (isOverdue(job.startDate)) {
+                        <span class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded bg-red-900/30 text-red-500 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse">
+                          ⚠️ Overdue
+                        </span>
+                      } @else {
+                        <span class="titan-badge-warning"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Scheduled</span> 
+                      }
+                    }
+                    <!-- END OF NEW LOGIC -->
+
                     @case ('PENDING') { <span class="titan-badge-warning">Pending</span> }
                     @case ('COMPLETED') { <span class="titan-badge-info">Completed</span> }
                     @case ('CANCELLED') { <span class="titan-badge-danger">Cancelled</span> }

@@ -55,7 +55,8 @@ public class QueryService {
                     site.getProjectCode(),
                     d.getStatus(),
                     d.getStartDate(),
-                    d.getEndDate()
+                    d.getEndDate(),
+                    d.getStartEngineHours()
             );
         }).collect(Collectors.toList());
     }

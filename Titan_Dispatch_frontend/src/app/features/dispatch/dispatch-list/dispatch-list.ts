@@ -29,6 +29,10 @@ export class DispatchList implements OnInit {
     this.fetchDispatches();
   }
 
+  isOverdue(dateString: string): boolean {
+    return new Date(dateString).getTime() < Date.now();
+  }
+
   openCompleteDrawer(dispatchId: string, startEngineHours: number): void {
     this.completeDrawer().open(dispatchId, startEngineHours);
   }

@@ -61,6 +61,7 @@ public class DispatchService {
                 .operator(operator)
                 .jobSiteId(command.jobSiteId())
                 .startDate(command.startDate())
+                .startEngineHours(equipment.getCurrentEngineHours())
                 .requiresHeavyTransport(command.requiresHeavyTransport())
                 .status(initialStatus)
                 .build();
