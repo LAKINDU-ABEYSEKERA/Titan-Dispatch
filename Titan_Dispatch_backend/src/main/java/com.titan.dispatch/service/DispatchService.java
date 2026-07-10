@@ -120,16 +120,27 @@ public class DispatchService {
         Equipment equipment = dispatch.getEquipment();
         JobSite jobSite = jobSiteRepo.findById(dispatch.getJobSiteId()).orElseThrow();
 
-        BigDecimal startHours = equipment.getCurrentEngineHours();
+        // FIX 1: Base math on the historical snapshot, not the live meter
+        BigDecimal startHours = dispatch.getStartEngineHours();
+
         if (command.endHours().compareTo(startHours) < 0) {
-            throw new IllegalArgumentException("End hours cannot be less than start hours.");
+            // FIX 2: Clearer error message returning the exact numbers back to the UI
+            throw new IllegalArgumentException(String.format(
+                    "End hours (%s) cannot be less than the start hours baseline (%s).",
+                    command.endHours(), startHours
+            ));
         }
 
         BigDecimal hoursUsed = command.endHours().subtract(startHours);
         BigDecimal totalJobCost = hoursUsed.multiply(equipment.getInternalHourlyRate());
 
         jobSite.setAccumulatedCost(jobSite.getAccumulatedCost().add(totalJobCost));
-        equipment.setCurrentEngineHours(command.endHours());
+
+        // FIX 3: Safely update live meter ONLY if the final hours are greater than the current reading
+        if (equipment.getCurrentEngineHours() == null || command.endHours().compareTo(equipment.getCurrentEngineHours()) > 0) {
+            equipment.setCurrentEngineHours(command.endHours());
+        }
+
         equipment.setStatus(EquipmentStatus.AVAILABLE);
 
         dispatch.setStatus(DispatchStatus.COMPLETED);
