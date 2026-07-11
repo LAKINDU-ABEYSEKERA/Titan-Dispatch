@@ -6,9 +6,13 @@ import com.titan.dispatch.domain.enums.EquipmentStatus;
 import com.titan.dispatch.repository.EquipmentRepository;
 import com.titan.dispatch.repository.MaintenanceLogRepository;
 import com.titan.dispatch.web.dto.CreateMaintenanceLogCommand;
+import com.titan.dispatch.web.dto.MaintenanceLogResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,5 +43,20 @@ public class MaintenanceService {
             equipment.setStatus(EquipmentStatus.AVAILABLE);
             equipmentRepo.save(equipment);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<MaintenanceLogResponse> getAllLogs() {
+        return maintenanceLogRepo.findAll().stream()
+                .map(l -> new MaintenanceLogResponse(
+                        l.getId(),
+                        l.getEquipment().getId(),
+                        l.getServiceDate(),
+                        l.getHoursAtService(),
+                        l.getServiceType(),
+                        l.getTotalCost(),
+                        l.getNotes()
+                ))
+                .collect(Collectors.toList());
     }
 }

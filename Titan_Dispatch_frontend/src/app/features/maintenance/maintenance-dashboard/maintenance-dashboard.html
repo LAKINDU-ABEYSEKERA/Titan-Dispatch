@@ -1,0 +1,46 @@
+<div class="space-y-6" style="animation: var(--animate-fade-in-up)">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 titan-border border-b bg-slate-900/20 px-6 py-4 rounded-xl">
+    <div>
+      <h1 class="text-2xl font-black text-white uppercase tracking-wider">Fleet Maintenance</h1>
+      <p class="text-xs text-slate-400 font-mono mt-1">Global service and repair logs</p>
+    </div>
+    <button class="titan-btn-primary px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors shadow-lg text-sm font-bold">
+      + Log Service
+    </button>
+  </div>
+
+  <div class="titan-panel !p-0 overflow-hidden">
+    <div class="overflow-x-auto w-full">
+      <table class="min-w-full border-collapse text-left">
+        <thead>
+          <tr>
+            <th class="titan-table-header">Date</th>
+            <th class="titan-table-header">Asset ID</th>
+            <th class="titan-table-header">Service Type</th>
+            <th class="titan-table-header">Engine Hrs</th>
+            <th class="titan-table-header text-right">Cost</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60 font-mono">
+          @if (isLoading()) {
+            <tr><td colspan="5" class="text-center py-8 text-slate-500 text-xs">Syncing logs...</td></tr>
+          } @else {
+            @for (log of logs(); track log.id) {
+              <tr class="hover:bg-slate-900/50 transition-colors">
+                <td class="titan-table-cell text-slate-400 text-xs">{{ log.serviceDate | date:'mediumDate' }}</td>
+                <td class="titan-table-cell font-bold text-white">{{ log.equipmentId.substring(0,8) }}</td>
+                <td class="titan-table-cell text-blue-400">{{ log.serviceType }}</td>
+                <td class="titan-table-cell text-slate-300">{{ log.hoursAtService }}</td>
+                <td class="titan-table-cell text-right text-emerald-400 font-bold">{{ log.totalCost | currency }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-center py-12 text-slate-500 font-mono text-xs">⚠️ No maintenance logs on record.</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

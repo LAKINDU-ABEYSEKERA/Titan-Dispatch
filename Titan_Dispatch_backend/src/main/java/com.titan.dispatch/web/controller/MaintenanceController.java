@@ -48,4 +48,11 @@ public class MaintenanceController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(response);
     }
+
+    // NEW: Required for the global Fleet Maintenance Dashboard
+    @PreAuthorize("hasAnyRole('ADMIN', 'MECHANIC', 'DISPATCH')")
+    @GetMapping
+    public ResponseEntity<List<MaintenanceLogResponse>> getAllHistory() {
+        return ResponseEntity.ok(maintenanceService.getAllLogs());
+    }
 }
