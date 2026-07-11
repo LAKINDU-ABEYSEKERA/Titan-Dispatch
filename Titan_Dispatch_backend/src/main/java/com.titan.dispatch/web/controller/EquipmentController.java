@@ -1,34 +1,51 @@
 package com.titan.dispatch.web.controller;
 
-import com.titan.dispatch.domain.entity.Equipment;
-import com.titan.dispatch.domain.enums.EquipmentStatus;
-import com.titan.dispatch.repository.EquipmentRepository;
+import com.titan.dispatch.service.EquipmentAdminService;
+import com.titan.dispatch.web.dto.EquipmentCommands.CreateEquipmentCommand;
+import com.titan.dispatch.web.dto.EquipmentCommands.UpdateEquipmentCommand;
 import com.titan.dispatch.web.dto.EquipmentResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/equipment")
 @RequiredArgsConstructor
 public class EquipmentController {
 
-    private final EquipmentRepository equipmentRepo;
+    // SWAPPED: Using the Service instead of the Repository directly
+    private final EquipmentAdminService equipmentService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
     @GetMapping
     public ResponseEntity<List<EquipmentResponse>> getAllEquipment() {
-        List<EquipmentResponse> responses = equipmentRepo.findAll().stream()
-                .map(e -> new EquipmentResponse(
-                        e.getId(), e.getAssetTag(), e.getStatus(),
-                        e.getCurrentEngineHours(), e.getInternalHourlyRate(), e.getInsuranceExpiration()
-                )).collect(Collectors.toList());
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(equipmentService.getAllEquipment());
     }
 
-    // Additional CRUD omitted for brevity, protected by hasRole('ADMIN')
+    // --- NEW ADMIN CRUD ENDPOINTS ---
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    public ResponseEntity<EquipmentResponse> createEquipment(@Valid @RequestBody CreateEquipmentCommand cmd) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(equipmentService.createEquipment(cmd));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<EquipmentResponse> updateEquipment(@PathVariable UUID id, @Valid @RequestBody UpdateEquipmentCommand cmd) {
+        return ResponseEntity.ok(equipmentService.updateEquipment(id, cmd));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEquipment(@PathVariable UUID id) {
+        equipmentService.deleteEquipment(id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -20,4 +20,16 @@ export class EquipmentService {
       tap(data => this._equipment.set(data))
     );
   }
+
+  createEquipment(payload: any): Observable<EquipmentResponse> {
+    return this.http.post<EquipmentResponse>('/api/v1/equipment', payload);
+  }
+
+  updateEquipment(id: string, payload: any): Observable<EquipmentResponse> {
+    return this.http.put<EquipmentResponse>(`/api/v1/equipment/${id}`, payload);
+  }
+
+  deleteEquipment(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/v1/equipment/${id}`);
+  }
 }

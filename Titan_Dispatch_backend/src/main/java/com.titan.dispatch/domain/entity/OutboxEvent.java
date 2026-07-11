@@ -36,6 +36,7 @@ public class OutboxEvent {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean processed = false;
 }

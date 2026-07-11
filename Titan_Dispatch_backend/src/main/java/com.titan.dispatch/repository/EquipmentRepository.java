@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface EquipmentRepository extends JpaRepository<Equipment, UUID> {
     List<Equipment> findByStatus(EquipmentStatus status);
 
+    boolean existsByAssetTag(String assetTag);
 }

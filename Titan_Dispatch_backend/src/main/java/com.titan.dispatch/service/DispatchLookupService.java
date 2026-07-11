@@ -1,5 +1,4 @@
 package com.titan.dispatch.service;
-
 import com.titan.dispatch.domain.enums.DispatchStatus;
 import com.titan.dispatch.domain.enums.EquipmentStatus;
 import com.titan.dispatch.domain.enums.OperatorStatus;

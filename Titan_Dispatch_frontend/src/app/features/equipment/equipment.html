@@ -6,12 +6,21 @@
       <p class="text-xs text-slate-400 font-mono mt-1">Total Assets Tracked: {{ inventory().length }}</p>
     </div>
     
-    <button 
-      (click)="loadInventory()" 
-      [disabled]="isLoading()"
-      class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-40">
-      🔄 Sync Systems
-    </button>
+    <div class="flex items-center gap-3">
+      <button 
+        (click)="loadInventory()" 
+        [disabled]="isLoading()"
+        class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-40">
+        🔄 Sync Systems
+      </button>
+      
+      <!-- NEW: Trigger the drawer to register an asset -->
+      <button 
+        (click)="drawer().openForCreate()" 
+        class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg transition-all shadow-lg shadow-blue-900/50 cursor-pointer">
+        + Register Asset
+      </button>
+    </div>
   </div>
 
   <div class="titan-panel !p-0 overflow-hidden">
@@ -24,6 +33,8 @@
             <th class="titan-table-header">Engine Metrics</th>
             <th class="titan-table-header">Internal Rate</th>
             <th class="titan-table-header">Insurance Deadline</th>
+            <!-- NEW: Actions header -->
+            <th class="titan-table-header text-right">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-800/60 font-mono text-xs">
@@ -36,6 +47,7 @@
                 <td class="px-4 py-4"><div class="h-4 bg-slate-800 rounded w-28"></div></td>
                 <td class="px-4 py-4"><div class="h-4 bg-slate-800 rounded w-16"></div></td>
                 <td class="px-4 py-4"><div class="h-4 bg-slate-800 rounded w-24"></div></td>
+                <td class="px-4 py-4"><div class="h-4 bg-slate-800 rounded w-16 ml-auto"></div></td>
               </tr>
             }
           } @else {
@@ -53,10 +65,20 @@
                 <td class="px-4 py-4 text-slate-300">{{ asset.currentEngineHours | number:'1.1-1' }} <span class="text-slate-500 text-[10px]">HRS</span></td>
                 <td class="px-4 py-4 text-emerald-400 font-bold">{{ asset.internalHourlyRate | currency:'USD':'symbol':'1.2-2' }}<span class="text-slate-500 text-[10px]/hr"></span></td>
                 <td class="px-4 py-4 text-slate-400">{{ asset.insuranceExpiration | date:'yyyy-MM-dd' }}</td>
+                
+                <!-- NEW: Edit and Archive buttons -->
+                <td class="px-4 py-4 text-right space-x-3">
+                  <button (click)="drawer().openForEdit(asset)" class="text-[10px] uppercase font-bold tracking-wider text-blue-400 hover:text-blue-300 transition-colors cursor-pointer">
+                    Edit
+                  </button>
+                  <button (click)="deleteAsset(asset.id)" class="text-[10px] uppercase font-bold tracking-wider text-red-500 hover:text-red-400 transition-colors cursor-pointer">
+                    Archive
+                  </button>
+                </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="text-center py-12 text-slate-500 font-mono text-xs">
+                <td colspan="6" class="text-center py-12 text-slate-500 font-mono text-xs">
                   ⚠️ No fleet logistics records returned from port console.
                 </td>
               </tr>
@@ -69,11 +91,11 @@
   </div>
 
   @if (toastMessage()) {
-    <div class="fixed bottom-6 right-6 max-w-sm w-full bg-slate-950 border-l-4 border-red-500 text-white p-4 rounded-lg shadow-2xl flex justify-between items-start border border-slate-800 animate-slide-in">
+    <div class="fixed bottom-6 right-6 max-w-sm w-full bg-slate-950 border-l-4 border-red-500 text-white p-4 rounded-lg shadow-2xl flex justify-between items-start border border-slate-800 animate-slide-in z-[60]">
       <div class="flex items-start space-x-3">
         <span class="text-red-500 font-bold text-lg leading-none">🚨</span>
         <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-red-400">Telemetry API Rejection [{{ toastMessage()?.status }}]</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-red-400">System Message [{{ toastMessage()?.status }}]</h3>
           <p class="mt-1 text-xs text-slate-300 font-medium leading-relaxed">{{ toastMessage()?.detail }}</p>
         </div>
       </div>
@@ -83,3 +105,6 @@
     </div>
   }
 </div>
+
+<!-- NEW: The drawer component that pops out when you click Register or Edit -->
+<app-equipment-form-drawer (saved)="loadInventory()"></app-equipment-form-drawer>
