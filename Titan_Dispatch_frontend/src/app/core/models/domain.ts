@@ -74,14 +74,22 @@ export interface CompleteDispatchCommand {
   endHours: number; 
 }
 
+export interface DispatchCompletionPayload {
+  dispatchId: string;
+  endEngineHours: number;
+  completionNotes?: string;
+}
+
 // --- Maintenance & Fuel ---
+
+// FIX: Kept only ONE version of CreateMaintenanceLogCommand
 export interface CreateMaintenanceLogCommand {
   equipmentId: string;
   serviceDate: string; 
   hoursAtService: number;
-  serviceType: ServiceType;
+  serviceType: string;
   totalCost: number;
-  notes?: string;
+  notes: string;
 }
 
 export interface MaintenanceLogResponse {
@@ -89,7 +97,7 @@ export interface MaintenanceLogResponse {
   equipmentId: string;
   serviceDate: string;
   hoursAtService: number;
-  serviceType: ServiceType;
+  serviceType: string;
   totalCost: number;
   notes: string;
 }
@@ -111,10 +119,4 @@ export interface FuelLogResponse {
   totalCost: number;
   engineHoursAtFillUp: number;
   fillDate: string;
-}
-
-export interface DispatchCompletionPayload {
-  dispatchId: string;
-  endEngineHours: number;
-  completionNotes?: string;
 }
