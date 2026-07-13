@@ -1,0 +1,2 @@
+ALTER TABLE equipment ADD COLUMN expected_maintenance_end_date TIMESTAMP;
+ALTER TABLE equipment_aud ADD COLUMN expected_maintenance_end_date TIMESTAMP;

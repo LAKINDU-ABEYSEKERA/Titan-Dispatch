@@ -7,6 +7,7 @@ import org.hibernate.envers.Audited;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -39,4 +40,7 @@ public class Equipment extends Auditable {
 
     @Column(name = "insurance_expiration", nullable = false)
     private LocalDate insuranceExpiration;
+
+    @Column(name = "expected_maintenance_end_date")
+    private LocalDateTime expectedMaintenanceEndDate;
 }

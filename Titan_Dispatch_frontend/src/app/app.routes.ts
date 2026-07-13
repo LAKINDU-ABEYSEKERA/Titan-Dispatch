@@ -27,6 +27,10 @@ export const routes: Routes = [
       {
         path: 'maintenance',
         loadComponent: () => import('./features/maintenance/maintenance-dashboard/maintenance-dashboard').then(m => m.MaintenanceDashboard)
+      },
+      {
+        path: 'operators',
+        loadComponent: () => import('./features/operators/operator').then(m => m.Operator)
       }
     ]
   },

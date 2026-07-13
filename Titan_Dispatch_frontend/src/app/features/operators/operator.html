@@ -1,0 +1,63 @@
+<div class="space-y-6" style="animation: var(--animate-fade-in-up)">
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-black text-white uppercase tracking-wider">Operator Roster</h1>
+      <p class="text-xs text-slate-400 font-mono mt-1">Personnel and license management</p>
+    </div>
+    <button (click)="openCreate()" class="titan-btn-primary">
+      + Register Operator
+    </button>
+  </div>
+
+  <div class="titan-panel !p-0 overflow-hidden flex flex-col h-[500px]">
+    <div class="overflow-auto w-full flex-1 relative">
+      <table class="min-w-full border-collapse text-left">
+        <thead class="sticky top-0 z-10 bg-slate-950 shadow-md border-b border-slate-800">
+          <tr>
+            <th class="titan-table-header">Personnel ID</th>
+            <th class="titan-table-header">Last Name</th>
+            <th class="titan-table-header">First Name</th>
+            <th class="titan-table-header">License Status</th>
+            <th class="titan-table-header text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60 font-mono">
+          @if (isLoading()) {
+            <tr><td colspan="5" class="text-center py-8 text-slate-500">Syncing Roster...</td></tr>
+          } @else {
+            @for (op of operators(); track op.id) {
+              <tr class="hover:bg-slate-900/50 transition-colors group">
+                <td class="titan-table-cell text-xs text-slate-500">{{ op.id.substring(0, 8) }}</td>
+                <td class="titan-table-cell font-bold text-white uppercase tracking-wide">{{ op.lastName }}</td>
+                <td class="titan-table-cell text-slate-300">{{ op.firstName }}</td>
+                <td class="titan-table-cell">
+                  @if (isLicenseExpired(op.licenseExpiration)) {
+                    <span class="titan-badge-danger">Expired ({{ op.licenseExpiration | date:'MM/dd/yy' }})</span>
+                  } @else {
+                    <span class="titan-badge-success">Valid thru {{ op.licenseExpiration | date:'MM/dd/yy' }}</span>
+                  }
+                </td>
+                <td class="titan-table-cell text-right space-x-2">
+                  <button (click)="openEdit(op)" class="text-[10px] uppercase font-bold tracking-wider bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white px-3 py-1.5 rounded transition-all">
+                    Edit
+                  </button>
+                  <button (click)="deleteOperator(op.id)" class="text-[10px] uppercase font-bold tracking-wider bg-red-900/30 text-red-500 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded transition-all">
+                    Revoke
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-center py-12 text-slate-500 font-mono text-xs">
+                  ⚠️ No personnel registered in the system.
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-operator-form-drawer (saved)="fetchOperators()"></app-operator-form-drawer>

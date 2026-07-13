@@ -45,8 +45,10 @@ public class DispatchService {
     public DispatchAllocation createDispatch(CreateDispatchCommand command) {
         Equipment equipment = equipmentRepo.findById(command.equipmentId()).orElseThrow();
         Operator operator = operatorRepo.findById(command.operatorId()).orElseThrow();
+        safetyInterlockPolicy.validate(equipment, operator, command.startDate());
 
-        safetyInterlockPolicy.validate(equipment, operator);
+        // Lock the equipment immediately so it cannot be double-booked
+        equipment.setStatus(EquipmentStatus.DISPATCHED);
 
         // Lock the equipment immediately so it cannot be double-booked
         equipment.setStatus(EquipmentStatus.DISPATCHED);

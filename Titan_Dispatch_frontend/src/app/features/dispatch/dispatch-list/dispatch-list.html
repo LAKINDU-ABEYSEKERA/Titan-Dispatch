@@ -34,10 +34,13 @@
     </div>
   </div>
 
-  <div class="titan-panel !p-0 overflow-hidden">
-    <div class="overflow-x-auto w-full">
+  <!-- FIXED HEIGHT CONTAINER: Locks the panel to 500px and uses flex to manage inner scrolling -->
+  <div class="titan-panel !p-0 overflow-hidden flex flex-col h-[500px]">
+    <!-- SCROLLABLE AREA: Allows vertical scrolling when content exceeds 500px -->
+    <div class="overflow-auto w-full flex-1 relative">
       <table class="min-w-full border-collapse text-left">
-        <thead>
+        <!-- STICKY HEADER: Locks to the top as the user scrolls down -->
+        <thead class="sticky top-0 z-10 bg-slate-950 shadow-md border-b border-slate-800">
           <tr>
             <th class="titan-table-header">Reference ID</th>
             <th class="titan-table-header">Asset Identity</th>
