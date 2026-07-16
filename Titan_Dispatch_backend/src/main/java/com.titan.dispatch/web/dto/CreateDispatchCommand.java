@@ -15,7 +15,12 @@ public record CreateDispatchCommand(
         UUID jobSiteId,
 
         @FutureOrPresent(message = "Start date cannot be in the past")
+        @NotNull(message = "Start date is required")
         LocalDateTime startDate,
+
+        @Future(message = "Expected end date must be in the future")
+        @NotNull(message = "Expected end date is required to secure the scheduling window")
+        LocalDateTime expectedEndDate,
 
         boolean requiresHeavyTransport
 ) {}

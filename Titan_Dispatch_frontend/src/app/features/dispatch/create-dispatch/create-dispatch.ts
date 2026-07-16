@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Input, Output, signal, effect } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DispatchFormService } from '../../../core/services/dispatch-form';
@@ -14,7 +14,6 @@ export class CreateDispatch {
   private readonly fb = inject(FormBuilder);
   private readonly dispatchFormService = inject(DispatchFormService);
 
-  // Component API: Controlled by parent (DispatchList)
   @Input() set open(value: boolean) {
     this.isOpen.set(value);
     if (value) this.initializeForm();
@@ -22,23 +21,21 @@ export class CreateDispatch {
   @Output() closed = new EventEmitter<void>();
   @Output() success = new EventEmitter<void>();
 
-  // Internal State
   readonly isOpen = signal<boolean>(false);
   readonly isHydrating = signal<boolean>(false);
   readonly isSubmitting = signal<boolean>(false);
   readonly toastMessage = signal<{ detail: string; status: number } | null>(null);
 
-  // Data Lookups (Bound directly to the service)
   readonly equipmentOpts = this.dispatchFormService.equipment;
   readonly operatorOpts = this.dispatchFormService.operators;
   readonly jobSiteOpts = this.dispatchFormService.jobSites;
 
-  // The Form
   readonly form = this.fb.nonNullable.group({
     equipmentId: ['', [Validators.required]],
     operatorId: ['', [Validators.required]],
     jobSiteId: ['', [Validators.required]],
     startDate: ['', [Validators.required]],
+    expectedEndDate: ['', [Validators.required]],
     requiresHeavyTransport: [false]
   });
 
@@ -65,11 +62,10 @@ export class CreateDispatch {
     this.isSubmitting.set(true);
     this.toastMessage.set(null);
 
-    // Form value maps directly to CreateDispatchCommand
     this.dispatchFormService.allocate(this.form.getRawValue()).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        this.success.emit(); // Tell parent to refresh the grid
+        this.success.emit(); 
         this.closeDrawer();
       },
       error: (err: HttpErrorResponse) => {

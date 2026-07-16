@@ -45,15 +45,13 @@ public class DispatchService {
     public DispatchAllocation createDispatch(CreateDispatchCommand command) {
         Equipment equipment = equipmentRepo.findById(command.equipmentId()).orElseThrow();
         Operator operator = operatorRepo.findById(command.operatorId()).orElseThrow();
-        safetyInterlockPolicy.validate(equipment, operator, command.startDate());
 
-        // Lock the equipment immediately so it cannot be double-booked
+        // Upgraded validation passes both dates
+        safetyInterlockPolicy.validate(equipment, operator, command.startDate(), command.expectedEndDate());
+
+        // Lock the equipment so it is recognized as busy
         equipment.setStatus(EquipmentStatus.DISPATCHED);
 
-        // Lock the equipment immediately so it cannot be double-booked
-        equipment.setStatus(EquipmentStatus.DISPATCHED);
-
-        // Time-aware status assignment based on the clock
         DispatchStatus initialStatus = command.startDate().isAfter(LocalDateTime.now())
                 ? DispatchStatus.SCHEDULED
                 : DispatchStatus.ACTIVE;
@@ -63,6 +61,7 @@ public class DispatchService {
                 .operator(operator)
                 .jobSiteId(command.jobSiteId())
                 .startDate(command.startDate())
+                .expectedEndDate(command.expectedEndDate())
                 .startEngineHours(equipment.getCurrentEngineHours())
                 .requiresHeavyTransport(command.requiresHeavyTransport())
                 .status(initialStatus)
@@ -96,11 +95,9 @@ public class DispatchService {
             throw new IllegalStateException("Cannot cancel a dispatch that is already completed or cancelled.");
         }
 
-        // 1. Mark dispatch as cancelled and record the timestamp
         dispatch.setStatus(DispatchStatus.CANCELLED);
         dispatch.setEndDate(LocalDateTime.now());
 
-        // 2. Critical: Release the equipment back into the available pool
         Equipment equipment = dispatch.getEquipment();
         equipment.setStatus(EquipmentStatus.AVAILABLE);
 
@@ -122,11 +119,9 @@ public class DispatchService {
         Equipment equipment = dispatch.getEquipment();
         JobSite jobSite = jobSiteRepo.findById(dispatch.getJobSiteId()).orElseThrow();
 
-        // FIX 1: Base math on the historical snapshot, not the live meter
         BigDecimal startHours = dispatch.getStartEngineHours();
 
         if (command.endHours().compareTo(startHours) < 0) {
-            // FIX 2: Clearer error message returning the exact numbers back to the UI
             throw new IllegalArgumentException(String.format(
                     "End hours (%s) cannot be less than the start hours baseline (%s).",
                     command.endHours(), startHours
@@ -138,7 +133,6 @@ public class DispatchService {
 
         jobSite.setAccumulatedCost(jobSite.getAccumulatedCost().add(totalJobCost));
 
-        // FIX 3: Safely update live meter ONLY if the final hours are greater than the current reading
         if (equipment.getCurrentEngineHours() == null || command.endHours().compareTo(equipment.getCurrentEngineHours()) > 0) {
             equipment.setCurrentEngineHours(command.endHours());
         }

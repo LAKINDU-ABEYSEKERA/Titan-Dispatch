@@ -4,6 +4,7 @@ import com.titan.dispatch.service.MaintenanceService;
 import com.titan.dispatch.repository.MaintenanceLogRepository;
 import com.titan.dispatch.web.dto.CreateMaintenanceLogCommand;
 import com.titan.dispatch.web.dto.MaintenanceLogResponse;
+import com.titan.dispatch.web.dto.SendToShopCommand;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,16 @@ public class MaintenanceController {
     public ResponseEntity<Void> submitLog(@Valid @RequestBody CreateMaintenanceLogCommand request) {
         maintenanceService.submitMaintenanceLog(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MECHANIC', 'DISPATCH')")
+    @PostMapping("/{equipmentId}/shop")
+    public ResponseEntity<Void> sendToShop(
+            @PathVariable UUID equipmentId,
+            @Valid @RequestBody SendToShopCommand command) {
+
+        maintenanceService.sendToShop(equipmentId, command.expectedEndDate());
+        return ResponseEntity.ok().build();
     }
 
     // NEW: Required by the frontend to display the maintenance history table

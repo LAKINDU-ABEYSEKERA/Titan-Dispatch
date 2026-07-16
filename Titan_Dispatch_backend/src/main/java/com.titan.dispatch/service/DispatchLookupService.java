@@ -1,4 +1,5 @@
 package com.titan.dispatch.service;
+
 import com.titan.dispatch.domain.enums.DispatchStatus;
 import com.titan.dispatch.domain.enums.EquipmentStatus;
 import com.titan.dispatch.domain.enums.OperatorStatus;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,20 +35,31 @@ public class DispatchLookupService {
 
     public List<EquipmentDropdown> getAvailableEquipment() {
         List<UUID> busyEquipmentIds = dispatchAllocationRepository.findEquipmentIdsInStatuses(ACTIVE_STATUSES);
+        LocalDate today = LocalDate.now();
 
         return equipmentRepository.findAll().stream()
-                .filter(eq -> eq.getStatus() == EquipmentStatus.AVAILABLE)
+                // Allow scheduling for MAINTENANCE vehicles, but block DOWN vehicles
+                .filter(eq -> eq.getStatus() == EquipmentStatus.AVAILABLE || eq.getStatus() == EquipmentStatus.MAINTENANCE)
                 .filter(eq -> !busyEquipmentIds.contains(eq.getId()))
-                .map(eq -> new EquipmentDropdown(eq.getId(), eq.getAssetTag()))
+                // Filter out equipment that is already expired today
+                .filter(eq -> !eq.getInsuranceExpiration().isBefore(today))
+                .map(eq -> {
+                    // Append a warning label to the dropdown string for vehicles actively in the shop
+                    String label = eq.getAssetTag() + (eq.getStatus() == EquipmentStatus.MAINTENANCE ? " (In Shop)" : "");
+                    return new EquipmentDropdown(eq.getId(), label);
+                })
                 .collect(Collectors.toList());
     }
 
     public List<OperatorDropdown> getAvailableOperators() {
         List<UUID> busyOperatorIds = dispatchAllocationRepository.findOperatorIdsInStatuses(ACTIVE_STATUSES);
+        LocalDate today = LocalDate.now();
 
         return operatorRepository.findAll().stream()
                 .filter(op -> op.getStatus() == OperatorStatus.ACTIVE)
                 .filter(op -> !busyOperatorIds.contains(op.getId()))
+                // Filter out operators whose licenses are already expired today
+                .filter(op -> !op.getLicenseExpiration().isBefore(today))
                 .map(op -> new OperatorDropdown(op.getId(), op.getFirstName(), op.getLastName()))
                 .collect(Collectors.toList());
     }

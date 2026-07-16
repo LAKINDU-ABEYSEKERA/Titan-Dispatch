@@ -40,6 +40,9 @@ public class DispatchAllocation extends Auditable {
     @Column(name = "start_date", nullable = false)
     private LocalDateTime startDate;
 
+    @Column(name = "expected_end_date", nullable = false)
+    private LocalDateTime expectedEndDate;
+
     @Column(name = "end_date")
     private LocalDateTime endDate;
 

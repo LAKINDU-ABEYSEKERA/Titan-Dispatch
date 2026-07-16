@@ -2,20 +2,45 @@ package com.titan.dispatch.repository;
 
 import com.titan.dispatch.domain.entity.DispatchAllocation;
 import com.titan.dispatch.domain.enums.DispatchStatus;
-import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface DispatchAllocationRepository extends JpaRepository<DispatchAllocation, UUID> {
 
-    boolean existsByEquipmentIdAndStatusIn(UUID equipmentId, List<DispatchStatus> statuses);
-    boolean existsByOperatorIdAndStatusIn(UUID operatorId, List<DispatchStatus> statuses);
+    // --- Predictive Overlap Queries ---
+    @Query("""
+        SELECT COUNT(d) > 0 FROM DispatchAllocation d 
+        WHERE d.equipment.id = :equipmentId 
+        AND d.status IN :statuses 
+        AND d.startDate < :newEndDate 
+        AND d.expectedEndDate > :newStartDate
+    """)
+    boolean hasOverlappingEquipmentDispatch(
+            @Param("equipmentId") UUID equipmentId,
+            @Param("newStartDate") LocalDateTime newStartDate,
+            @Param("newEndDate") LocalDateTime newEndDate,
+            @Param("statuses") List<DispatchStatus> statuses);
 
-    // 2. For the Dropdowns (UX)
+    @Query("""
+        SELECT COUNT(d) > 0 FROM DispatchAllocation d 
+        WHERE d.operator.id = :operatorId 
+        AND d.status IN :statuses 
+        AND d.startDate < :newEndDate 
+        AND d.expectedEndDate > :newStartDate
+    """)
+    boolean hasOverlappingOperatorDispatch(
+            @Param("operatorId") UUID operatorId,
+            @Param("newStartDate") LocalDateTime newStartDate,
+            @Param("newEndDate") LocalDateTime newEndDate,
+            @Param("statuses") List<DispatchStatus> statuses);
+
+    // UX Dropdown queries
     @Query("SELECT d.equipment.id FROM DispatchAllocation d WHERE d.status IN :statuses")
     List<UUID> findEquipmentIdsInStatuses(@Param("statuses") List<DispatchStatus> statuses);
 

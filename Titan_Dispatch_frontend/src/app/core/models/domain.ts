@@ -66,7 +66,8 @@ export interface CreateDispatchCommand {
   equipmentId: string;
   operatorId: string;
   jobSiteId: string;
-  startDate: string; 
+  startDate: string;
+  expectedEndDate: string; 
   requiresHeavyTransport: boolean;
 }
 
