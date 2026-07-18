@@ -1,50 +1,106 @@
-<div class="space-y-6" style="animation: var(--animate-fade-in-up)">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 titan-border border-b bg-slate-900/20 px-6 py-4 rounded-xl">
+<div class="p-8 h-full flex flex-col space-y-8 animate-fade-in-up">
+  
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
     <div>
-      <h1 class="text-2xl font-black text-white uppercase tracking-wider">Fleet Maintenance</h1>
-      <p class="text-xs text-slate-400 font-mono mt-1">Global service and repair logs</p>
+      <h1 class="text-2xl font-black text-white uppercase tracking-wider flex items-center gap-3">
+        <span class="p-2 bg-amber-500/10 text-amber-400 rounded-lg shadow-[0_0_15px_rgba(245,158,11,0.2)]">🛠️</span>
+        Fleet Maintenance
+      </h1>
+      <p class="text-sm text-slate-400 mt-1">Active shop roster and historical service logs.</p>
     </div>
-    <button (click)="drawer().open()" class="titan-btn-primary px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors shadow-lg text-sm font-bold cursor-pointer">
-  + Log Service
-</button>
+    <button (click)="drawer().open()" class="titan-btn-primary px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold transition-all duration-300 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 cursor-pointer flex items-center gap-2">
+      <span class="text-lg leading-none">+</span> Log Service Complete
+    </button>
   </div>
 
-  <div class="titan-panel !p-0 overflow-hidden">
-    <div class="overflow-x-auto w-full">
-      <table class="min-w-full border-collapse text-left">
-        <thead>
-          <tr>
-            <th class="titan-table-header">Date</th>
-            <th class="titan-table-header">Asset ID</th>
-            <th class="titan-table-header">Service Type</th>
-            <th class="titan-table-header">Engine Hrs</th>
-            <th class="titan-table-header text-right">Cost</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-800/60 font-mono">
-          @if (isLoading()) {
-            <tr><td colspan="5" class="text-center py-8 text-slate-500 text-xs">Syncing logs...</td></tr>
-          } @else {
-            @for (log of logs(); track log.id) {
-              <tr class="hover:bg-slate-900/50 transition-colors">
-                <td class="titan-table-cell text-slate-400 text-xs">{{ log.serviceDate | date:'mediumDate' }}</td>
-                <td class="titan-table-cell font-bold text-white">{{ log.equipmentId.substring(0,8) }}</td>
-                <td class="titan-table-cell text-blue-400">{{ log.serviceType }}</td>
-                <td class="titan-table-cell text-slate-300">{{ log.hoursAtService }}</td>
-                <td class="titan-table-cell text-right text-emerald-400 font-bold">{{ log.totalCost | currency }}</td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="5" class="text-center py-12 text-slate-500 font-mono text-xs">⚠️ No maintenance logs on record.</td>
-              </tr>
-            }
-          }
-        </tbody>
-      </table>
+  @if (isLoading()) {
+    <div class="flex flex-col items-center justify-center py-20 space-y-4 animate-pulse">
+      <div class="w-8 h-8 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
+      <p class="text-sm font-bold text-slate-500 uppercase tracking-widest">Compiling Shop Records...</p>
     </div>
-  </div>
-  
+  } @else {
+    
+    <!-- ACTIVE SHOP ROSTER SECTION -->
+    <div>
+      <h2 class="text-xs font-black uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+        Currently In Shop ({{ activeRoster().length }})
+      </h2>
+      
+      @if (activeRoster().length === 0) {
+        <div class="bg-slate-900/50 border border-slate-800 border-dashed rounded-xl p-8 text-center">
+          <p class="text-sm font-bold text-slate-400 uppercase tracking-wider">All Assets Operational</p>
+          <p class="text-xs text-slate-500 mt-1">No equipment is currently locked in maintenance.</p>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          @for (asset of activeRoster(); track asset.equipmentId) {
+            <div class="bg-slate-900 border border-amber-900/30 rounded-xl p-5 shadow-lg relative overflow-hidden group hover:border-amber-700/50 transition-colors">
+              <div class="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+              <div class="flex justify-between items-start mb-3">
+                <span class="text-lg font-black text-white font-mono">{{ asset.assetTag }}</span>
+                <span class="px-2 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[10px] uppercase font-bold">Locked</span>
+              </div>
+              <div class="pt-3 border-t border-slate-800">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Expected Return</p>
+                <p class="text-sm text-slate-300 font-mono flex items-center gap-2">
+                  <span>⏱️</span> {{ asset.expectedEndDate | date:'MMM d, y, h:mm a' }}
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- HISTORICAL LOGS SECTION -->
+    <div class="flex-1 flex flex-col pt-4">
+      <h2 class="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">Service History</h2>
+      
+      <div class="titan-panel bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex-1 transition-all duration-500 hover:border-slate-700/50">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300 relative">
+            <thead class="bg-slate-950/80 backdrop-blur-md text-xs uppercase font-black text-slate-500 border-b border-slate-800 sticky top-0 z-10 tracking-widest">
+              <tr>
+                <th scope="col" class="px-6 py-4">Date Completed</th>
+                <th scope="col" class="px-6 py-4">Asset Tag</th>
+                <th scope="col" class="px-6 py-4">Service Type</th>
+                <th scope="col" class="px-6 py-4">Engine Hrs</th>
+                <th scope="col" class="px-6 py-4 text-right">Total Cost</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/50 font-mono">
+              @for (log of logs(); track log.id) {
+                <tr class="hover:bg-slate-800/60 transition-colors group">
+                  <td class="px-6 py-4 text-slate-400 text-xs">{{ log.serviceDate | date:'mediumDate' }}</td>
+                  <td class="px-6 py-4 font-bold text-white group-hover:text-blue-400 transition-colors">{{ log.assetTag }}</td>
+                  <td class="px-6 py-4">
+                    <span class="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider border" [ngClass]="getBadgeClass(log.serviceType)">
+                      {{ log.serviceType }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-slate-300 text-xs">{{ log.hoursAtService | number:'1.1-1' }}</td>
+                  <td class="px-6 py-4 text-right font-bold text-emerald-400 group-hover:text-emerald-300 transition-colors">
+                    {{ log.totalCost | currency:'USD':'symbol':'1.2-2' }}
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="text-center py-16">
+                    <div class="flex flex-col items-center justify-center space-y-3 opacity-60">
+                      <span class="text-3xl mb-1">📋</span>
+                      <p class="text-sm font-bold text-slate-400 uppercase tracking-wider">No Historical Data</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
 </div>
 
-<app-maintenance-form-drawer (saved)="fetchLogs()"></app-maintenance-form-drawer>
-
+<app-maintenance-form-drawer (saved)="fetchDashboardData()"></app-maintenance-form-drawer>

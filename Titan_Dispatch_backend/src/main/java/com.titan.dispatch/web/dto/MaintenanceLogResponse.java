@@ -1,6 +1,5 @@
 package com.titan.dispatch.web.dto;
 
-import com.titan.dispatch.domain.enums.ServiceType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -8,9 +7,10 @@ import java.util.UUID;
 public record MaintenanceLogResponse(
         UUID id,
         UUID equipmentId,
+        String assetTag, // UPGRADED: Human-readable identifier
         LocalDateTime serviceDate,
         BigDecimal hoursAtService,
-        ServiceType serviceType,
+        String serviceType,
         BigDecimal totalCost,
         String notes
 ) {}

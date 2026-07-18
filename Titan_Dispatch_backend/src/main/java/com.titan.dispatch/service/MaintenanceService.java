@@ -5,6 +5,7 @@ import com.titan.dispatch.domain.entity.MaintenanceLog;
 import com.titan.dispatch.domain.enums.EquipmentStatus;
 import com.titan.dispatch.repository.EquipmentRepository;
 import com.titan.dispatch.repository.MaintenanceLogRepository;
+import com.titan.dispatch.web.dto.ActiveMaintenanceResponse;
 import com.titan.dispatch.web.dto.CreateMaintenanceLogCommand;
 import com.titan.dispatch.web.dto.MaintenanceLogResponse;
 import lombok.RequiredArgsConstructor;
@@ -64,15 +65,30 @@ public class MaintenanceService {
 
     @Transactional(readOnly = true)
     public List<MaintenanceLogResponse> getAllLogs() {
+        // UPGRADED: Order by date descending by default and map the Asset Tag
         return maintenanceLogRepo.findAll().stream()
+                .sorted((a, b) -> b.getServiceDate().compareTo(a.getServiceDate()))
                 .map(l -> new MaintenanceLogResponse(
                         l.getId(),
                         l.getEquipment().getId(),
+                        l.getEquipment().getAssetTag(), // Pulled directly from the joined entity
                         l.getServiceDate(),
                         l.getHoursAtService(),
-                        l.getServiceType(),
+                        l.getServiceType().name(),
                         l.getTotalCost(),
                         l.getNotes()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ActiveMaintenanceResponse> getActiveShopRoster() {
+        return equipmentRepo.findAll().stream()
+                .filter(e -> e.getStatus() == EquipmentStatus.MAINTENANCE)
+                .map(e -> new ActiveMaintenanceResponse(
+                        e.getId(),
+                        e.getAssetTag(),
+                        e.getExpectedMaintenanceEndDate()
                 ))
                 .collect(Collectors.toList());
     }

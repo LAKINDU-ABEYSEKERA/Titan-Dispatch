@@ -9,7 +9,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./core/layout/layout/layout').then(m => m.Layout),
-    canActivate: [authGuard],
+    canActivate: [authGuard], // <-- This protects ALL children below it
     children: [
       {
         path: '',
@@ -31,10 +31,14 @@ export const routes: Routes = [
       {
         path: 'operators',
         loadComponent: () => import('./features/operators/operator').then(m => m.Operator)
+      },
+      {
+        path: 'job-sites',
+        loadComponent: () => import('./features/job-sites/components/job-site-list/job-site-list').then(m => m.JobSiteList),
+        title: 'Titan | Job Sites'
       }
     ]
   },
-  
   {
     path: '**',
     redirectTo: 'login'

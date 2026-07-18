@@ -5,6 +5,8 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SoftDelete;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -20,6 +22,8 @@ import java.util.UUID;
 @SoftDelete(columnName = "deleted")
 @Getter
 @Setter
+@NoArgsConstructor
+@SuperBuilder
 public abstract class Auditable {
 
     @CreatedBy
@@ -37,6 +41,4 @@ public abstract class Auditable {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    // Getters and Setters omitted for brevity, but you should generate them or use Lombok @Getter/@Setter at the class level
 }

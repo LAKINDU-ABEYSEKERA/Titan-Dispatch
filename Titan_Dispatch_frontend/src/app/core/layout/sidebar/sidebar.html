@@ -52,7 +52,6 @@
         }
       </a>
 
-      <!-- NEW: Operator Roster Button -->
       <a 
         routerLink="/operators" 
         routerLinkActive="bg-slate-800 text-white font-semibold border-l-2 border-blue-500"
@@ -64,6 +63,21 @@
         <span class="text-lg group-hover:scale-110 transition-transform flex-shrink-0">👷</span>
         @if (!isCollapsed()) { 
           <span class="text-xs font-bold uppercase tracking-wider animate-fade-in whitespace-nowrap">Operator Roster</span> 
+        }
+      </a>
+
+      <!-- NEW: Job Sites & Cost Centers Button -->
+      <a 
+        routerLink="/job-sites" 
+        routerLinkActive="bg-slate-800 text-white font-semibold border-l-2 border-blue-500"
+        class="flex items-center py-2.5 rounded-lg hover:bg-slate-800/50 hover:text-slate-200 transition-all group overflow-hidden"
+        [class.px-3]="!isCollapsed()"
+        [class.justify-center]="isCollapsed()"
+        [class.space-x-3]="!isCollapsed()"
+        title="Job Sites">
+        <span class="text-lg group-hover:scale-110 transition-transform flex-shrink-0">📍</span>
+        @if (!isCollapsed()) { 
+          <span class="text-xs font-bold uppercase tracking-wider animate-fade-in whitespace-nowrap">Job Sites</span> 
         }
       </a>
 

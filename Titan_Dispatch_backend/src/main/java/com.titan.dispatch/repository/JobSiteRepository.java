@@ -20,4 +20,7 @@ public interface JobSiteRepository extends JpaRepository<JobSite, UUID> {
         FROM job_site j WHERE j.id = :jobSiteId
     """, nativeQuery = true)
     Boolean isWithinGeofence(@Param("jobSiteId") UUID jobSiteId, @Param("lat") BigDecimal lat, @Param("lon") BigDecimal lon);
+
+    // NEW: Required for the Job Site Analytics creation logic
+    boolean existsByProjectCode(String projectCode);
 }

@@ -1,37 +1,53 @@
 import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
-import { DatePipe, CurrencyPipe } from '@angular/common';
+import { DatePipe, CurrencyPipe, CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { MaintenanceService } from '../../../core/services/maintenance.service';
-import { MaintenanceLogResponse } from '../../../core/models/domain';
+import { MaintenanceLogResponse, ActiveMaintenanceResponse } from '../../../core/models/domain';
 import { MaintenanceFormDrawer } from '../components/maintenance-form-drawer/maintenance-form-drawer';
 
 @Component({
   selector: 'app-maintenance-dashboard',
   standalone: true,
-  // FIX: Make sure the drawer component is imported here
-  imports: [DatePipe, CurrencyPipe, MaintenanceFormDrawer],
+  imports: [CommonModule, DatePipe, CurrencyPipe, MaintenanceFormDrawer],
   templateUrl: './maintenance-dashboard.html'
 })
 export class MaintenanceDashboard implements OnInit {
   private readonly maintenanceService = inject(MaintenanceService);
   
   readonly logs = signal<MaintenanceLogResponse[]>([]);
-  readonly isLoading = signal<boolean>(false);
+  readonly activeRoster = signal<ActiveMaintenanceResponse[]>([]);
+  readonly isLoading = signal<boolean>(true);
 
-  // FIX: This exposes the drawer to the HTML template so drawer().open() works
   readonly drawer = viewChild.required(MaintenanceFormDrawer);
 
   ngOnInit(): void {
-    this.fetchLogs();
+    this.fetchDashboardData();
   }
 
-  fetchLogs(): void {
+  fetchDashboardData(): void {
     this.isLoading.set(true);
-    this.maintenanceService.getLogs().subscribe({
-      next: (data) => {
-        this.logs.set(data);
+    
+    // Fetch both active shop data and historical logs concurrently
+    forkJoin({
+      active: this.maintenanceService.getActiveRoster(),
+      history: this.maintenanceService.getLogs()
+    }).subscribe({
+      next: (result) => {
+        this.activeRoster.set(result.active);
+        this.logs.set(result.history);
         this.isLoading.set(false);
       },
       error: () => this.isLoading.set(false)
     });
+  }
+
+  // Helper to color-code service badges
+  getBadgeClass(type: string): string {
+    switch (type.toUpperCase()) {
+      case 'PREVENTATIVE': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'REPAIR': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+      case 'EMERGENCY': return 'bg-red-500/10 text-red-400 border-red-500/20';
+      default: return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+    }
   }
 }

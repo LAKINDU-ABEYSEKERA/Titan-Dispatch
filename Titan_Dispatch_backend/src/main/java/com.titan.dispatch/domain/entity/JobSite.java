@@ -2,6 +2,7 @@ package com.titan.dispatch.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.envers.Audited;
 
 import java.math.BigDecimal;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder // <-- UPGRADED: Allows inheritance from Auditable
 @Audited
 public class JobSite extends Auditable {
 

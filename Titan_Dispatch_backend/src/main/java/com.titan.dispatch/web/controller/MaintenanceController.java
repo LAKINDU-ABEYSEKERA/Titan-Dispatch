@@ -2,6 +2,7 @@ package com.titan.dispatch.web.controller;
 
 import com.titan.dispatch.service.MaintenanceService;
 import com.titan.dispatch.repository.MaintenanceLogRepository;
+import com.titan.dispatch.web.dto.ActiveMaintenanceResponse;
 import com.titan.dispatch.web.dto.CreateMaintenanceLogCommand;
 import com.titan.dispatch.web.dto.MaintenanceLogResponse;
 import com.titan.dispatch.web.dto.SendToShopCommand;
@@ -32,6 +33,12 @@ public class MaintenanceController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MECHANIC', 'DISPATCH')")
+    @GetMapping("/active")
+    public ResponseEntity<List<ActiveMaintenanceResponse>> getActiveShopRoster() {
+        return ResponseEntity.ok(maintenanceService.getActiveShopRoster());
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MECHANIC', 'DISPATCH')")
     @PostMapping("/{equipmentId}/shop")
     public ResponseEntity<Void> sendToShop(
             @PathVariable UUID equipmentId,
@@ -41,7 +48,6 @@ public class MaintenanceController {
         return ResponseEntity.ok().build();
     }
 
-    // NEW: Required by the frontend to display the maintenance history table
     @PreAuthorize("hasAnyRole('ADMIN', 'MECHANIC', 'DISPATCH')")
     @GetMapping("/{equipmentId}")
     public ResponseEntity<List<MaintenanceLogResponse>> getHistory(@PathVariable UUID equipmentId) {
@@ -50,9 +56,10 @@ public class MaintenanceController {
                 .map(l -> new MaintenanceLogResponse(
                         l.getId(),
                         l.getEquipment().getId(),
+                        l.getEquipment().getAssetTag(), // FIXED: Added Asset Tag
                         l.getServiceDate(),
                         l.getHoursAtService(),
-                        l.getServiceType(),
+                        l.getServiceType().name(),      // FIXED: Converted Enum to String
                         l.getTotalCost(),
                         l.getNotes()
                 ))
@@ -60,7 +67,6 @@ public class MaintenanceController {
         return ResponseEntity.ok(response);
     }
 
-    // NEW: Required for the global Fleet Maintenance Dashboard
     @PreAuthorize("hasAnyRole('ADMIN', 'MECHANIC', 'DISPATCH')")
     @GetMapping
     public ResponseEntity<List<MaintenanceLogResponse>> getAllHistory() {

@@ -96,11 +96,18 @@ export interface CreateMaintenanceLogCommand {
 export interface MaintenanceLogResponse {
   id: string;
   equipmentId: string;
+  assetTag: string; // NEW
   serviceDate: string;
   hoursAtService: number;
   serviceType: string;
   totalCost: number;
   notes: string;
+}
+
+export interface ActiveMaintenanceResponse {
+  equipmentId: string;
+  assetTag: string;
+  expectedEndDate: string;
 }
 
 export interface CreateFuelLogCommand {
