@@ -1,86 +1,77 @@
-import { Component, inject, signal, output, OnInit } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
+import { Component, inject, signal, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MaintenanceService } from '../../../../core/services/maintenance.service';
 import { EquipmentService } from '../../../../core/services/equipment.service';
-import { CreateMaintenanceLogCommand } from '../../../../core/models/domain';
+import { EquipmentResponse } from '../../../../core/models/domain';
 
 @Component({
   selector: 'app-maintenance-form-drawer',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './maintenance-form-drawer.html'
 })
-export class MaintenanceFormDrawer implements OnInit {
+export class MaintenanceFormDrawer {
   private readonly fb = inject(FormBuilder);
   private readonly maintenanceService = inject(MaintenanceService);
   private readonly equipmentService = inject(EquipmentService);
 
-  saved = output<void>();
-
-  isOpen = signal(false);
-  isLoading = signal(false);
-  errorMessage = signal<string | null>(null);
+  readonly isOpen = signal(false);
   
-  readonly inventory = this.equipmentService.equipment;
+  // ALIGNED: These match the HTML template perfectly now
+  readonly equipment = signal<EquipmentResponse[]>([]);
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal<string | null>(null);
+  
+  @Output() saved = new EventEmitter<void>();
 
-  form = this.fb.nonNullable.group({
-    equipmentId: ['', [Validators.required]],
-    serviceDate: ['', [Validators.required]],
-    hoursAtService: [0, [Validators.required, Validators.min(0)]],
-    serviceType: ['PREVENTATIVE', [Validators.required]],
+  readonly form = this.fb.nonNullable.group({
+    equipmentId: ['', Validators.required],
+    serviceDate: ['', Validators.required],
+    hoursAtService: [0, [Validators.required, Validators.min(0.1)]],
+    serviceType: ['', Validators.required],
     totalCost: [0, [Validators.required, Validators.min(0)]],
-    notes: ['', [Validators.required, Validators.maxLength(1000)]]
+    notes: ['']
   });
 
-  ngOnInit() {
-    if (this.inventory().length === 0) {
-      this.equipmentService.getInventory().subscribe();
-    }
-  }
-
-  open() {
-    this.form.reset({ serviceType: 'PREVENTATIVE', hoursAtService: 0, totalCost: 0 });
-    
-    // Generates '2026-07-11' for the HTML date picker
-    const now = new Date();
-    const cleanDateString = now.toISOString().split('T')[0];
-    this.form.patchValue({ serviceDate: cleanDateString });
-    
-    this.errorMessage.set(null);
+  open(): void {
     this.isOpen.set(true);
+    this.errorMessage.set(null);
+    this.equipmentService.getInventory().subscribe({
+      next: (data) => {
+        // THE FIX: Only allow logging service for vehicles currently in the shop
+        this.equipment.set(data.filter(e => e.status === 'MAINTENANCE'));
+      }
+    });
   }
 
-  close() {
+  close(): void {
     this.isOpen.set(false);
+    this.errorMessage.set(null);
+    this.form.reset({
+      hoursAtService: 0,
+      totalCost: 0
+    });
   }
 
-  submit() {
+  onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-
+    
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    const rawValue = this.form.getRawValue();
-    
-    // THE FIX: We intercept the raw value and attach T00:00:00 so the Java backend accepts it
-    const payload = {
-      ...rawValue,
-      serviceDate: `${rawValue.serviceDate}T00:00:00`
-    } as unknown as CreateMaintenanceLogCommand;
-    
-    this.maintenanceService.submitLog(payload).subscribe({
+    this.maintenanceService.submitLog(this.form.getRawValue()).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.saved.emit();
         this.close();
       },
-      error: (err: HttpErrorResponse) => {
+      error: () => {
         this.isLoading.set(false);
-        this.errorMessage.set(err.error?.detail || 'Failed to submit maintenance log.');
+        this.errorMessage.set('Failed to submit log. Please verify network connection.');
       }
     });
   }

@@ -35,6 +35,7 @@ public class MaintenanceService {
         }
 
         equipment.setStatus(EquipmentStatus.MAINTENANCE);
+        equipment.setMaintenanceStartDate(LocalDateTime.now()); // NEW: Stamp the start time
         equipment.setExpectedMaintenanceEndDate(expectedEndDate);
         equipmentRepo.save(equipment);
     }
@@ -58,7 +59,8 @@ public class MaintenanceService {
         // Return equipment to AVAILABLE and clear the timeline lock
         if (equipment.getStatus() == EquipmentStatus.DOWN || equipment.getStatus() == EquipmentStatus.MAINTENANCE) {
             equipment.setStatus(EquipmentStatus.AVAILABLE);
-            equipment.setExpectedMaintenanceEndDate(null); // <-- IMPORTANT: Clear the timeline lock!
+            equipment.setMaintenanceStartDate(null);       // NEW: Clear the start date
+            equipment.setExpectedMaintenanceEndDate(null);
             equipmentRepo.save(equipment);
         }
     }
@@ -88,6 +90,7 @@ public class MaintenanceService {
                 .map(e -> new ActiveMaintenanceResponse(
                         e.getId(),
                         e.getAssetTag(),
+                        e.getMaintenanceStartDate(), // NEW: Map it to the DTO
                         e.getExpectedMaintenanceEndDate()
                 ))
                 .collect(Collectors.toList());

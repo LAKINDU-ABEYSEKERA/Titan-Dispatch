@@ -1,0 +1,1 @@
+ALTER TABLE equipment_aud ADD COLUMN maintenance_start_date TIMESTAMP;

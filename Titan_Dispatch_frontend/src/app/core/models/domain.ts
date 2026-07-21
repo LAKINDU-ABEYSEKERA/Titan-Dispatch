@@ -107,6 +107,7 @@ export interface MaintenanceLogResponse {
 export interface ActiveMaintenanceResponse {
   equipmentId: string;
   assetTag: string;
+  startDate: string; 
   expectedEndDate: string;
 }
 

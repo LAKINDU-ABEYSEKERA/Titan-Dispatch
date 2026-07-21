@@ -1,81 +1,98 @@
 @if (isOpen()) {
-  <div class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity" (click)="close()"></div>
-}
+  <!-- Backdrop -->
+  <div class="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-sm transition-opacity" (click)="close()"></div>
+  
+  <!-- Drawer Panel -->
+  <div class="fixed top-0 right-0 h-full w-full max-w-md bg-slate-900 border-l border-slate-800 shadow-2xl z-[70] p-6 flex flex-col transform transition-transform duration-300 overflow-y-auto">
+    
+    <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+      <div>
+        <h2 class="text-white font-black uppercase tracking-wider">Log Service Complete</h2>
+        <p class="text-[10px] font-mono text-blue-400 mt-1">Unlock Asset for Dispatch</p>
+      </div>
+      <button (click)="close()" class="text-slate-500 hover:text-white transition-colors cursor-pointer text-xl">✕</button>
+    </div>
 
-<div class="fixed top-0 end-0 transition-all duration-300 transform h-full max-w-md w-full z-50 titan-panel titan-border border-l shadow-2xl flex flex-col"
-     [class.translate-x-full]="!isOpen()" [class.translate-x-0]="isOpen()">
-  
-  <div class="flex justify-between items-center py-4 px-6 titan-border border-b bg-black/20">
-    <h3 class="font-bold text-lg text-white tracking-widest uppercase">
-      Log Fleet Service
-    </h3>
-    <button type="button" (click)="close()" class="text-slate-400 hover:text-white transition-colors cursor-pointer">✕</button>
-  </div>
-  
-  <form [formGroup]="form" (ngSubmit)="submit()" class="flex-1 flex flex-col overflow-hidden">
-    <div class="p-6 flex-1 overflow-y-auto space-y-6">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex-1 flex flex-col space-y-5">
       
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider text-[10px]">Target Asset</label>
-        <select formControlName="equipmentId"
-                class="block w-full rounded-md bg-black/40 border border-slate-700 text-white px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none font-mono text-sm">
-          <option value="" disabled>Select Machinery...</option>
-          @for (eq of inventory(); track eq.id) {
-            <option [value]="eq.id">{{ eq.assetTag }} ({{ eq.status }})</option>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Locked Asset</label>
+        <select 
+          formControlName="equipmentId" 
+          class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all cursor-pointer font-mono">
+          <option value="" disabled selected>Select locked asset...</option>
+          @for (item of equipment(); track item.id) {
+            <option [value]="item.id">{{ item.assetTag }}</option>
           }
         </select>
+        @if (equipment().length === 0) {
+          <p class="text-[10px] text-amber-500 mt-1.5 font-mono">⚠️ No assets are currently locked in the shop.</p>
+        }
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Completion Date</label>
+        <input 
+          type="datetime-local" 
+          formControlName="serviceDate" 
+          class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all cursor-pointer font-mono">
       </div>
 
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider text-[10px]">Service Date</label>
-          <!-- THE FIX IS HERE: type="date" instead of type="datetime-local" -->
-          <input type="date" formControlName="serviceDate"
-                 class="block w-full rounded-md bg-black/40 border border-slate-700 text-white px-3 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none font-mono text-sm">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider text-[10px]">Service Type</label>
-          <select formControlName="serviceType"
-                  class="block w-full rounded-md bg-black/40 border border-slate-700 text-white px-3 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none font-mono text-sm">
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Service Type</label>
+          <select 
+            formControlName="serviceType" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all cursor-pointer font-mono text-sm">
+            <option value="" disabled selected>Select...</option>
             <option value="PREVENTATIVE">Preventative</option>
             <option value="REPAIR">Repair</option>
             <option value="INSPECTION">Inspection</option>
-            <option value="EMERGENCY">Emergency Breakdown</option>
+            <option value="EMERGENCY">Emergency</option>
           </select>
         </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider text-[10px]">Engine Hours</label>
-          <input type="number" formControlName="hoursAtService" step="0.1"
-                 class="block w-full rounded-md bg-black/40 border border-slate-700 text-white px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none font-mono text-sm">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider text-[10px]">Total Cost ($)</label>
-          <input type="number" formControlName="totalCost" step="0.01"
-                 class="block w-full rounded-md bg-black/40 border border-slate-700 text-emerald-400 font-bold px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none font-mono text-sm">
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Engine Hrs</label>
+          <input 
+            type="number" 
+            step="0.1" 
+            formControlName="hoursAtService" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all font-mono">
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider text-[10px]">Mechanic Notes</label>
-        <textarea formControlName="notes" rows="4" placeholder="Describe the work completed..."
-                  class="block w-full rounded-md bg-black/40 border border-slate-700 text-white px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none font-mono text-sm resize-none"></textarea>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Total Cost ($)</label>
+        <input 
+          type="number" 
+          step="0.01" 
+          formControlName="totalCost" 
+          class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all font-mono">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mechanic Notes</label>
+        <textarea 
+          formControlName="notes" 
+          rows="3" 
+          class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all font-mono text-sm resize-none" 
+          placeholder="Enter service details..."></textarea>
       </div>
 
       @if (errorMessage()) {
-        <div class="bg-red-900/30 border border-red-500/50 text-red-400 p-3 rounded text-sm font-mono">
-          {{ errorMessage() }}
+        <div class="p-3 rounded-lg bg-red-900/50 border border-red-500/50 text-red-200 text-xs flex items-start gap-2">
+          <span class="text-red-400">🚨</span> {{ errorMessage() }}
         </div>
       }
-    </div>
 
-    <div class="p-6 titan-border border-t bg-black/20 flex justify-end gap-x-3">
-      <button type="button" (click)="close()" class="titan-btn-secondary px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded text-sm font-bold cursor-pointer">Cancel</button>
-      <button type="submit" [disabled]="form.invalid || isLoading()" class="titan-btn-primary px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-bold disabled:opacity-50 cursor-pointer">
-        {{ isLoading() ? 'Saving...' : 'Submit Log' }}
-      </button>
-    </div>
-  </form>
-</div>
+      <div class="mt-auto pt-6 border-t border-slate-800">
+        <button 
+          type="submit" 
+          [disabled]="form.invalid || isLoading() || equipment().length === 0"
+          class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest rounded-lg transition-colors shadow-[0_0_15px_rgba(37,99,235,0.3)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+          {{ isLoading() ? 'Processing...' : 'Submit Log & Unlock' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}

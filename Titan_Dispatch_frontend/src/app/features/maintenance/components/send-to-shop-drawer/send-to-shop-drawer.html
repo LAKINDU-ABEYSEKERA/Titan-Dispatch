@@ -1,0 +1,22 @@
+@if (isOpen()) {
+  <div class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm" (click)="close()"></div>
+  <div class="fixed top-0 right-0 h-full w-96 bg-slate-900 border-l border-slate-800 shadow-2xl z-50 p-6 flex flex-col">
+    <h2 class="text-white font-black uppercase tracking-wider mb-6">Lock Asset in Shop</h2>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Asset</label>
+        <select formControlName="equipmentId" class="w-full bg-slate-950 border border-slate-800 rounded p-3 text-white">
+          <option value="">Select Asset</option>
+          @for (item of equipment(); track item.id) {
+            <option [value]="item.id">{{ item.assetTag }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Expected Completion</label>
+        <input type="datetime-local" formControlName="expectedEndDate" class="w-full bg-slate-950 border border-slate-800 rounded p-3 text-white">
+      </div>
+      <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded mt-4">Confirm Maintenance Lock</button>
+    </form>
+  </div>
+}

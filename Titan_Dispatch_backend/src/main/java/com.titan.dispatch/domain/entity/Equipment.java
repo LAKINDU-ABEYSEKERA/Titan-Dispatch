@@ -41,6 +41,9 @@ public class Equipment extends Auditable {
     @Column(name = "insurance_expiration", nullable = false)
     private LocalDate insuranceExpiration;
 
+    @Column(name = "maintenance_start_date")
+    private LocalDateTime maintenanceStartDate;
+
     @Column(name = "expected_maintenance_end_date")
     private LocalDateTime expectedMaintenanceEndDate;
 }

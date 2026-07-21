@@ -6,5 +6,6 @@ import java.util.UUID;
 public record ActiveMaintenanceResponse(
         UUID equipmentId,
         String assetTag,
+        LocalDateTime startDate,
         LocalDateTime expectedEndDate
 ) {}
