@@ -4,6 +4,8 @@ import com.titan.dispatch.domain.enums.ServiceType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.envers.Audited;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,8 +26,10 @@ public class MaintenanceLog extends Auditable {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
+    // THE FIX: Ignore the relationship if the Equipment is soft-deleted
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "equipment_id", nullable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
     private Equipment equipment;
 
     @Column(name = "service_date", nullable = false)

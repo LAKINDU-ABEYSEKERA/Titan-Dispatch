@@ -76,7 +76,13 @@
                   @switch (job.status) {
                     @case ('ACTIVE') { <span class="titan-badge-success"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active</span> }
                     
-                    <!-- NEW: OVERDUE LOGIC ADDED HERE -->
+                    <!-- NEW: The Watchdog Warning -->
+                    @case ('AT_RISK') { 
+                      <span class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded bg-red-900/30 text-red-500 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse">
+                        ⚠️ Maint. Conflict
+                      </span>
+                    }
+
                     @case ('SCHEDULED') { 
                       @if (isOverdue(job.startDate)) {
                         <span class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded bg-red-900/30 text-red-500 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse">
@@ -86,7 +92,6 @@
                         <span class="titan-badge-warning"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Scheduled</span> 
                       }
                     }
-                    <!-- END OF NEW LOGIC -->
 
                     @case ('PENDING') { <span class="titan-badge-warning">Pending</span> }
                     @case ('COMPLETED') { <span class="titan-badge-info">Completed</span> }
@@ -96,8 +101,8 @@
                 <td class="titan-table-cell text-slate-400 text-xs">{{ job.startDate | date:'MMM d, y, h:mm a' }}</td>
                 
                 <td class="titan-table-cell text-right space-x-2">
-                  <!-- Both SCHEDULED and PENDING can be Activated or Cancelled -->
-                  @if (job.status === 'SCHEDULED' || job.status === 'PENDING') {
+                  <!-- Both SCHEDULED, PENDING, and AT_RISK can be Activated or Cancelled -->
+                  @if (job.status === 'SCHEDULED' || job.status === 'PENDING' || job.status === 'AT_RISK') {
                     <button (click)="activateJob(job.id)" 
                             class="text-[10px] uppercase font-bold tracking-wider bg-emerald-600/20 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 px-3 py-1.5 rounded transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
                       ▶ Start Job

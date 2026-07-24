@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
 import { DatePipe, CurrencyPipe, CommonModule } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { MaintenanceService } from '../../../core/services/maintenance.service';
 import { MaintenanceLogResponse, ActiveMaintenanceResponse } from '../../../core/models/domain';
 import { MaintenanceFormDrawer } from '../components/maintenance-form-drawer/maintenance-form-drawer';
@@ -29,16 +30,26 @@ export class MaintenanceDashboard implements OnInit {
   fetchDashboardData(): void {
     this.isLoading.set(true);
     
+    // UPGRADED: Added catchError to prevent the Domino Effect
     forkJoin({
-      active: this.maintenanceService.getActiveRoster(),
-      history: this.maintenanceService.getLogs()
+      active: this.maintenanceService.getActiveRoster().pipe(
+        catchError(err => {
+          console.error('Failed to fetch active shop roster:', err);
+          return of([]); // Return empty array to keep UI alive
+        })
+      ),
+      history: this.maintenanceService.getLogs().pipe(
+        catchError(err => {
+          console.error('Failed to fetch completed logs:', err);
+          return of([]); // Return empty array to keep UI alive
+        })
+      )
     }).subscribe({
       next: (result) => {
         this.activeRoster.set(result.active);
         this.logs.set(result.history);
         this.isLoading.set(false);
-      },
-      error: () => this.isLoading.set(false)
+      }
     });
   }
 
@@ -51,7 +62,6 @@ export class MaintenanceDashboard implements OnInit {
     }
   }
 
-  // NEW: Transforms the raw enum into a past-tense UI label to prevent dispatcher confusion
   formatServiceBadge(type: string): string {
     switch (type.toUpperCase()) {
       case 'PREVENTATIVE': return 'Maint. Completed';

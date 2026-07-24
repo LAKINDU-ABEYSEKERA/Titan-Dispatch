@@ -50,4 +50,15 @@ public interface DispatchAllocationRepository extends JpaRepository<DispatchAllo
     Optional<DispatchAllocation> findByEquipmentIdAndStatus(UUID equipmentId, DispatchStatus status);
     List<DispatchAllocation> findByStatusOrderByStartDateDesc(DispatchStatus status);
     List<DispatchAllocation> findAllByOrderByStartDateDesc();
+
+    @Query("""
+        SELECT d FROM DispatchAllocation d 
+        WHERE d.equipment.id = :equipmentId 
+        AND d.status IN ('SCHEDULED', 'PENDING') 
+        AND d.startDate < :maintenanceEndDate
+    """)
+    List<DispatchAllocation> findDispatchesAtRisk(@Param("equipmentId") UUID equipmentId, @Param("maintenanceEndDate") LocalDateTime maintenanceEndDate);
+
+    // NEW: The Watchdog Recovery Query
+    List<DispatchAllocation> findAllByEquipmentIdAndStatus(UUID equipmentId, DispatchStatus status);
 }

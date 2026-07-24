@@ -27,9 +27,17 @@ export class SendToShopDrawer {
 
   open(): void {
     this.isOpen.set(true);
-    this.equipmentService.getInventory().subscribe(data => {
-      // Only show assets that aren't already in maintenance
-      this.equipment.set(data.filter(e => e.status !== 'MAINTENANCE'));
+    
+    this.equipmentService.getInventory().subscribe({
+      next: (data) => {
+        // THE BULLETPROOF FIX:
+        // We flip the logic to explicitly ban 'MAINTENANCE' and 'DISPATCHED'.
+        // We also force uppercase to prevent JSON serialization casing bugs.
+        this.equipment.set(data.filter(e => {
+          const safeStatus = e.status?.toUpperCase() || '';
+          return safeStatus !== 'MAINTENANCE' && safeStatus !== 'DISPATCHED';
+        }));
+      }
     });
   }
 
@@ -41,9 +49,11 @@ export class SendToShopDrawer {
   onSubmit(): void {
     if (this.form.invalid) return;
     const { equipmentId, expectedEndDate } = this.form.getRawValue();
-    this.maintenanceService.sendToShop(equipmentId, expectedEndDate).subscribe(() => {
-      this.saved.emit();
-      this.close();
+    this.maintenanceService.sendToShop(equipmentId, expectedEndDate).subscribe({
+      next: () => {
+        this.saved.emit();
+        this.close();
+      }
     });
   }
 }

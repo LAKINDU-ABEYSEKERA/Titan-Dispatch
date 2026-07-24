@@ -49,12 +49,16 @@ public class DispatchService {
         // Upgraded validation passes both dates
         safetyInterlockPolicy.validate(equipment, operator, command.startDate(), command.expectedEndDate());
 
-        // Lock the equipment so it is recognized as busy
-        equipment.setStatus(EquipmentStatus.DISPATCHED);
-
+        // Check if the job is starting today or in the future
         DispatchStatus initialStatus = command.startDate().isAfter(LocalDateTime.now())
                 ? DispatchStatus.SCHEDULED
                 : DispatchStatus.ACTIVE;
+
+        // THE CRITICAL FIX: We ONLY lock the equipment if the job is starting RIGHT NOW.
+        // If the job is SCHEDULED for the future, the vehicle status remains AVAILABLE.
+        if (initialStatus == DispatchStatus.ACTIVE) {
+            equipment.setStatus(EquipmentStatus.DISPATCHED);
+        }
 
         DispatchAllocation allocation = DispatchAllocation.builder()
                 .equipment(equipment)
@@ -77,13 +81,19 @@ public class DispatchService {
     public void activateDispatch(UUID dispatchId) {
         DispatchAllocation dispatch = dispatchRepo.findById(dispatchId).orElseThrow();
 
-        if (dispatch.getStatus() != DispatchStatus.SCHEDULED && dispatch.getStatus() != DispatchStatus.PENDING) {
-            throw new IllegalStateException("Only scheduled or pending dispatches can be activated.");
+        // ADDED: Allow AT_RISK jobs to be forced into ACTIVE if the dispatcher overrides
+        if (dispatch.getStatus() != DispatchStatus.SCHEDULED && dispatch.getStatus() != DispatchStatus.PENDING && dispatch.getStatus() != DispatchStatus.AT_RISK) {
+            throw new IllegalStateException("Only scheduled, pending, or at-risk dispatches can be activated.");
         }
 
         dispatch.setStatus(DispatchStatus.ACTIVE);
-        dispatchRepo.save(dispatch);
 
+        // THE FIX: Now that the job is starting, physically lock the equipment
+        Equipment equipment = dispatch.getEquipment();
+        equipment.setStatus(EquipmentStatus.DISPATCHED);
+        equipmentRepo.save(equipment);
+
+        dispatchRepo.save(dispatch);
         log.info("Dispatch {} manually activated.", dispatchId);
     }
 

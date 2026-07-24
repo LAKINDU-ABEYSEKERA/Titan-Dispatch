@@ -21,7 +21,7 @@ export interface ProblemDetail {
 // --- Core Domain Types ---
 export type EquipmentStatus = 'AVAILABLE' | 'DOWN' | 'MAINTENANCE' | 'DISPATCHED';
 export type OperatorStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
-export type DispatchStatus = 'SCHEDULED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'PENDING';
+export type DispatchStatus = 'SCHEDULED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'PENDING' | 'AT_RISK';
 export type ServiceType = 'PREVENTATIVE' | 'REPAIR' | 'INSPECTION';
 
 // --- Equipment & UI Dropdowns ---
