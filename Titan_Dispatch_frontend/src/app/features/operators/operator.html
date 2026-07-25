@@ -1,55 +1,98 @@
-<div class="space-y-6" style="animation: var(--animate-fade-in-up)">
-  <div class="flex justify-between items-center">
-    <div>
-      <h1 class="text-2xl font-black text-white uppercase tracking-wider">Operator Roster</h1>
+<div class="space-y-6 animate-fade-in-up h-full flex flex-col p-8">
+  
+  <!-- UPGRADED HEADER WITH SEARCH -->
+  <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+    <div class="whitespace-nowrap">
+      <h1 class="text-2xl font-black text-white uppercase tracking-wider flex items-center gap-3">
+        <span class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.2)]">👷</span>
+        Operator Roster
+      </h1>
       <p class="text-xs text-slate-400 font-mono mt-1">Personnel and license management</p>
     </div>
-    <button (click)="openCreate()" class="titan-btn-primary">
-      + Register Operator
+
+    <!-- SEARCH BAR -->
+    <div class="relative w-full max-w-md xl:ml-auto">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <span class="text-slate-500 opacity-70">🔍</span>
+      </div>
+      <input 
+        type="text" 
+        [value]="searchQuery()"
+        (input)="updateSearch($event)"
+        class="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg pl-10 pr-4 py-2.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-500 font-mono shadow-inner"
+        placeholder="Search by name or personnel ID..."
+      >
+      @if (searchQuery()) {
+        <button (click)="searchQuery.set('')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white transition-colors cursor-pointer">✕</button>
+      }
+    </div>
+
+    <button (click)="openCreate()" class="titan-btn-primary px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold transition-all duration-300 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 cursor-pointer flex items-center gap-2 whitespace-nowrap border-none">
+      <span class="text-lg leading-none">+</span> Register Operator
     </button>
   </div>
 
-  <div class="titan-panel !p-0 overflow-hidden flex flex-col h-[500px]">
+  <div class="titan-panel bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex-1 flex flex-col transition-all duration-500 hover:border-slate-700/50">
     <div class="overflow-auto w-full flex-1 relative">
-      <table class="min-w-full border-collapse text-left">
-        <thead class="sticky top-0 z-10 bg-slate-950 shadow-md border-b border-slate-800">
+      <table class="min-w-full border-collapse text-left text-sm text-slate-300">
+        <thead class="sticky top-0 z-10 bg-slate-950/80 backdrop-blur-md text-xs uppercase font-black text-slate-500 border-b border-slate-800 tracking-widest">
           <tr>
-            <th class="titan-table-header">Personnel ID</th>
-            <th class="titan-table-header">Last Name</th>
-            <th class="titan-table-header">First Name</th>
-            <th class="titan-table-header">License Status</th>
-            <th class="titan-table-header text-right">Actions</th>
+            <th class="px-6 py-5">Personnel ID</th>
+            <th class="px-6 py-5">Last Name</th>
+            <th class="px-6 py-5">First Name</th>
+            <th class="px-6 py-5">License Status</th>
+            <th class="px-6 py-5 text-right">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-800/60 font-mono">
+        <tbody class="divide-y divide-slate-800/50 font-mono">
           @if (isLoading()) {
-            <tr><td colspan="5" class="text-center py-8 text-slate-500">Syncing Roster...</td></tr>
+            <tr>
+              <td colspan="5" class="text-center py-16">
+                <div class="flex flex-col items-center justify-center space-y-4 animate-pulse">
+                  <div class="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+                  <p class="text-sm font-bold text-slate-500 uppercase tracking-widest">Compiling Roster...</p>
+                </div>
+              </td>
+            </tr>
           } @else {
-            @for (op of operators(); track op.id) {
-              <tr class="hover:bg-slate-900/50 transition-colors group">
-                <td class="titan-table-cell text-xs text-slate-500">{{ op.id.substring(0, 8) }}</td>
-                <td class="titan-table-cell font-bold text-white uppercase tracking-wide">{{ op.lastName }}</td>
-                <td class="titan-table-cell text-slate-300">{{ op.firstName }}</td>
-                <td class="titan-table-cell">
+            @for (op of filteredOperators(); track op.id; let i = $index) {
+              <tr 
+                class="animate-row hover:bg-slate-800/60 transition-colors group"
+                [style.animation-delay.ms]="i * 40"
+              >
+                <td class="px-6 py-4 text-xs text-slate-500">
+                  <span class="bg-slate-950 border border-slate-800 px-2 py-1 rounded shadow-inner">{{ op.id.substring(0, 8) }}</span>
+                </td>
+                <td class="px-6 py-4 font-bold text-white uppercase tracking-wide group-hover:text-indigo-400 transition-colors">{{ op.lastName }}</td>
+                <td class="px-6 py-4 text-slate-300">{{ op.firstName }}</td>
+                <td class="px-6 py-4">
                   @if (isLicenseExpired(op.licenseExpiration)) {
-                    <span class="titan-badge-danger">Expired ({{ op.licenseExpiration | date:'MM/dd/yy' }})</span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded bg-red-500/10 text-red-400 border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse">
+                      <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Expired ({{ op.licenseExpiration | date:'MM/dd/yy' }})
+                    </span>
                   } @else {
-                    <span class="titan-badge-success">Valid thru {{ op.licenseExpiration | date:'MM/dd/yy' }}</span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Valid thru {{ op.licenseExpiration | date:'MM/dd/yy' }}
+                    </span>
                   }
                 </td>
-                <td class="titan-table-cell text-right space-x-2">
-                  <button (click)="openEdit(op)" class="text-[10px] uppercase font-bold tracking-wider bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white px-3 py-1.5 rounded transition-all">
+                <td class="px-6 py-4 text-right space-x-2">
+                  <button (click)="openEdit(op)" class="text-[10px] uppercase font-bold tracking-wider bg-slate-800 text-slate-300 hover:bg-indigo-600 hover:text-white px-3 py-1.5 rounded transition-all duration-300 shadow-sm hover:shadow-[0_0_12px_rgba(79,70,229,0.5)] cursor-pointer">
                     Edit
                   </button>
-                  <button (click)="deleteOperator(op.id)" class="text-[10px] uppercase font-bold tracking-wider bg-red-900/30 text-red-500 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded transition-all">
+                  <button (click)="deleteOperator(op.id)" class="text-[10px] uppercase font-bold tracking-wider bg-red-900/30 text-red-500 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded transition-all duration-300 shadow-sm hover:shadow-[0_0_12px_rgba(239,68,68,0.4)] cursor-pointer">
                     Revoke
                   </button>
                 </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="text-center py-12 text-slate-500 font-mono text-xs">
-                  ⚠️ No personnel registered in the system.
+                <td colspan="5" class="text-center py-16 text-slate-500 font-mono text-xs">
+                  <div class="flex flex-col items-center opacity-60">
+                    <span class="text-4xl mb-3">🚷</span>
+                    <p class="text-sm font-bold uppercase tracking-widest text-slate-400">No Match Found</p>
+                    <p class="text-xs text-slate-500 mt-1">No personnel records match your query.</p>
+                  </div>
                 </td>
               </tr>
             }

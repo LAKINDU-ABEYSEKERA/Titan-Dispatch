@@ -1,15 +1,33 @@
 <div class="p-8 h-full flex flex-col">
   
-  <!-- Header with subtle fade-in -->
-  <div class="flex justify-between items-center mb-8 animate-fade-in">
-    <div>
+  <!-- UPGRADED HEADER WITH SEARCH -->
+  <div class="flex flex-col xl:flex-row xl:items-center justify-between mb-8 gap-4 animate-fade-in">
+    <div class="whitespace-nowrap">
       <h1 class="text-2xl font-black text-white uppercase tracking-wider flex items-center gap-3">
         <span class="p-2 bg-blue-500/10 text-blue-400 rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.2)]">📍</span>
         Job Sites & Cost Centers
       </h1>
       <p class="text-sm text-slate-400 mt-1">Manage project locations and monitor accumulated fleet costs.</p>
     </div>
-    <button (click)="openDrawer()" class="titan-btn-primary px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold transition-all duration-300 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] hover:-translate-y-0.5 cursor-pointer flex items-center gap-2">
+
+    <!-- SEARCH BAR -->
+    <div class="relative w-full max-w-md xl:ml-auto">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <span class="text-slate-500 opacity-70">🔍</span>
+      </div>
+      <input 
+        type="text" 
+        [value]="searchQuery()"
+        (input)="updateSearch($event)"
+        class="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg pl-10 pr-4 py-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 font-mono shadow-inner"
+        placeholder="Search by project code or name..."
+      >
+      @if (searchQuery()) {
+        <button (click)="searchQuery.set('')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white transition-colors cursor-pointer">✕</button>
+      }
+    </div>
+
+    <button (click)="openDrawer()" class="titan-btn-primary px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold transition-all duration-300 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] hover:-translate-y-0.5 cursor-pointer flex items-center gap-2 whitespace-nowrap">
       <span class="text-lg leading-none">+</span> New Job Site
     </button>
   </div>
@@ -49,8 +67,8 @@
               </td>
             </tr>
           } @else {
-            @for (site of jobSites(); track site.id; let i = $index) {
-              <!-- Staggered animation using $index -->
+            <!-- THE UPDATED LOOP: Now uses filteredJobSites() -->
+            @for (site of filteredJobSites(); track site.id; let i = $index) {
               <tr 
                 class="animate-row group hover:bg-slate-800/60 transition-all duration-300" 
                 [style.animation-delay.ms]="i * 60">

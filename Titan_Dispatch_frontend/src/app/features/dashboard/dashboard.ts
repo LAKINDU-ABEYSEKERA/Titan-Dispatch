@@ -1,38 +1,43 @@
-import { Component } from '@angular/core';
-import { CompleteDispatchDrawer } from '../../features/dispatch/components/complete-dispatch-drawer/complete-dispatch-drawer';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { DispatchService } from '../../core/services/dispatch';
+import { DispatchSummary } from '../../core/models/domain';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CompleteDispatchDrawer], // 1. Import the drawer
-  template: `
-    <div class="space-y-6">
-      <h2 class="text-xl font-black text-white uppercase tracking-wider">Titan Core Dispatch Console</h2>
-      
-      <div class="p-6 bg-slate-900/40 border border-slate-800 rounded-xl flex justify-between items-center">
-        <div>
-          <p class="text-white font-bold">Dispatch #DSP-1234</p>
-          <p class="text-sm text-slate-400">DOZER-D8T - Site Alpha</p>
-        </div>
-        
-        <button (click)="drawer.open('DSP-1234', 1450.0)"
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded transition-colors shadow-lg">
-          Complete Dispatch
-        </button>
-      </div>
-
-      <app-complete-dispatch-drawer 
-        #drawer 
-        (dispatchCompleted)="refreshData()">
-      </app-complete-dispatch-drawer>
-    </div>
-  `
+  imports: [CommonModule, DatePipe],
+  templateUrl: './dashboard.html'
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
+  private readonly dispatchService = inject(DispatchService);
   
-  // 4. This fires when the drawer emits success
-  refreshData() {
-    console.log('[Dashboard] Dispatch completed successfully. Refreshing list...');
-    // Future step: Call this.dispatchService.getAll() here to update the UI
+  readonly upcomingJobs = signal<DispatchSummary[]>([]);
+  readonly atRiskCount = signal<number>(0);
+  readonly isLoading = signal<boolean>(true);
+
+  ngOnInit(): void {
+    this.fetchOverviewData();
+  }
+
+  fetchOverviewData(): void {
+    this.isLoading.set(true);
+    this.dispatchService.getDispatches().subscribe({
+      next: (data) => {
+        // 1. Filter out old history (we only care about the present/future)
+        let activeJobs = data.filter(d => d.status !== 'COMPLETED' && d.status !== 'CANCELLED');
+        
+        // 2. Sort Chronologically: Nearest dates at the top!
+        activeJobs.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+        
+        // 3. Count Watchdog Conflicts to trigger the global warning banner
+        const conflicts = activeJobs.filter(d => d.status === 'AT_RISK').length;
+        
+        this.upcomingJobs.set(activeJobs);
+        this.atRiskCount.set(conflicts);
+        this.isLoading.set(false);
+      },
+      error: () => this.isLoading.set(false)
+    });
   }
 }

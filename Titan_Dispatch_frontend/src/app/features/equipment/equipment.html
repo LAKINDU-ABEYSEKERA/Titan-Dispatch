@@ -1,23 +1,40 @@
 <div class="space-y-6 animate-fade-in">
   
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
+  <!-- UPGRADED HEADER WITH SEARCH -->
+  <div class="flex flex-col xl:flex-row xl:items-center sm:justify-between gap-4">
+    <div class="whitespace-nowrap">
       <h1 class="text-2xl font-black text-white uppercase tracking-wider">Heavy Machinery Fleet</h1>
       <p class="text-xs text-slate-400 font-mono mt-1">Total Assets Tracked: {{ inventory().length }}</p>
     </div>
     
+    <!-- SEARCH BAR -->
+    <div class="relative w-full max-w-md xl:ml-auto">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <span class="text-slate-500 opacity-70">🔍</span>
+      </div>
+      <input 
+        type="text" 
+        [value]="searchQuery()"
+        (input)="updateSearch($event)"
+        class="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg pl-10 pr-4 py-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 font-mono shadow-inner"
+        placeholder="Search by asset tag or status..."
+      >
+      @if (searchQuery()) {
+        <button (click)="searchQuery.set('')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white transition-colors cursor-pointer">✕</button>
+      }
+    </div>
+
     <div class="flex items-center gap-3">
       <button 
         (click)="loadInventory()" 
         [disabled]="isLoading()"
-        class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-40">
+        class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-40 whitespace-nowrap">
         🔄 Sync Systems
       </button>
       
-      <!-- NEW: Trigger the drawer to register an asset -->
       <button 
         (click)="drawer().openForCreate()" 
-        class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg transition-all shadow-lg shadow-blue-900/50 cursor-pointer">
+        class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg transition-all shadow-lg shadow-blue-900/50 cursor-pointer whitespace-nowrap">
         + Register Asset
       </button>
     </div>
@@ -33,7 +50,6 @@
             <th class="titan-table-header">Engine Metrics</th>
             <th class="titan-table-header">Internal Rate</th>
             <th class="titan-table-header">Insurance Deadline</th>
-            <!-- NEW: Actions header -->
             <th class="titan-table-header text-right">Actions</th>
           </tr>
         </thead>
@@ -51,7 +67,8 @@
               </tr>
             }
           } @else {
-            @for (asset of inventory(); track asset.id) {
+            <!-- THE UPDATED LOOP: Now uses filteredInventory() -->
+            @for (asset of filteredInventory(); track asset.id) {
               <tr class="hover:bg-slate-900/30 transition-colors">
                 <td class="px-4 py-4 font-bold text-white tracking-wide text-sm">{{ asset.assetTag }}</td>
                 <td class="px-4 py-4">
@@ -66,7 +83,6 @@
                 <td class="px-4 py-4 text-emerald-400 font-bold">{{ asset.internalHourlyRate | currency:'USD':'symbol':'1.2-2' }}<span class="text-slate-500 text-[10px]/hr"></span></td>
                 <td class="px-4 py-4 text-slate-400">{{ asset.insuranceExpiration | date:'yyyy-MM-dd' }}</td>
                 
-                <!-- NEW: Edit and Archive buttons -->
                 <td class="px-4 py-4 text-right space-x-3">
                   <button (click)="drawer().openForEdit(asset)" class="text-[10px] uppercase font-bold tracking-wider text-blue-400 hover:text-blue-300 transition-colors cursor-pointer">
                     Edit
@@ -106,5 +122,4 @@
   }
 </div>
 
-<!-- NEW: The drawer component that pops out when you click Register or Edit -->
 <app-equipment-form-drawer (saved)="loadInventory()"></app-equipment-form-drawer>

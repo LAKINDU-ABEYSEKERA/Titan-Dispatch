@@ -1,19 +1,55 @@
 <div class="space-y-6" style="animation: var(--animate-fade-in-up)">
   
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-    <div>
+  <!-- UPGRADED HEADER WITH SEARCH BAR -->
+  <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+    <div class="whitespace-nowrap">
       <h1 class="text-2xl font-black text-white uppercase tracking-wider">Active Operations</h1>
       <p class="text-xs text-slate-400 font-mono mt-1">Live dispatch allocation console</p>
     </div>
+    
+    <!-- THE SEARCH BAR -->
+    <div class="relative w-full max-w-md xl:ml-auto">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <span class="text-slate-500 opacity-70">🔍</span>
+      </div>
+      <input 
+        type="text" 
+        [value]="searchQuery()"
+        (input)="updateSearch($event)"
+        class="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg pl-10 pr-4 py-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 font-mono shadow-inner"
+        placeholder="Search asset, operator, or project..."
+      >
+      <!-- Clear button appears if text is typed -->
+      @if (searchQuery()) {
+        <button (click)="searchQuery.set('')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white transition-colors cursor-pointer">
+          ✕
+        </button>
+      }
+    </div>
+
     <div class="flex items-center gap-3">
-      <button (click)="fetchDispatches()" [disabled]="isLoading()" class="titan-btn-secondary">
+      <button (click)="fetchDispatches()" [disabled]="isLoading()" class="titan-btn-secondary whitespace-nowrap">
         🔄 Refresh
       </button>
-      <button (click)="isDrawerOpen.set(true)" class="titan-btn-primary">
+      <button (click)="isDrawerOpen.set(true)" class="titan-btn-primary whitespace-nowrap">
         + New Allocation
       </button>
     </div>
   </div>
+
+  <!-- NEW: GLOBAL WATCHDOG WARNING BANNER -->
+  @if (atRiskCount() > 0) {
+    <div class="bg-red-950/50 border border-red-500/50 rounded-xl p-4 flex items-start gap-4 shadow-[0_0_20px_rgba(239,68,68,0.15)] animate-pulse">
+      <div class="text-red-500 text-2xl mt-0.5">⚠️</div>
+      <div>
+        <h3 class="text-red-400 font-black uppercase tracking-widest text-sm">Critical Maintenance Clashes Detected</h3>
+        <p class="text-red-200/70 text-xs mt-1 font-mono">
+          System Watchdog has identified {{ atRiskCount() }} scheduled operation(s) where the assigned machinery is locked in the repair shop. 
+          Immediate dispatcher intervention required.
+        </p>
+      </div>
+    </div>
+  }
 
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
     <div class="titan-card">
@@ -34,12 +70,10 @@
     </div>
   </div>
 
-  <!-- FIXED HEIGHT CONTAINER: Locks the panel to 500px and uses flex to manage inner scrolling -->
+  <!-- FIXED HEIGHT CONTAINER -->
   <div class="titan-panel !p-0 overflow-hidden flex flex-col h-[500px]">
-    <!-- SCROLLABLE AREA: Allows vertical scrolling when content exceeds 500px -->
     <div class="overflow-auto w-full flex-1 relative">
       <table class="min-w-full border-collapse text-left">
-        <!-- STICKY HEADER: Locks to the top as the user scrolls down -->
         <thead class="sticky top-0 z-10 bg-slate-950 shadow-md border-b border-slate-800">
           <tr>
             <th class="titan-table-header">Reference ID</th>
@@ -66,8 +100,10 @@
               </tr>
             }
           } @else {
-            @for (job of dispatches(); track job.id) {
-              <tr class="hover:bg-slate-900/50 transition-colors group">
+            <!-- THE FIX: We are now looping over our new sorted engine! -->
+            @for (job of sortedDispatches(); track job.id) {
+              <!-- Row flashes red if it's a conflict -->
+              <tr class="transition-colors group hover:bg-slate-900/50" [class.bg-red-950/10]="job.status === 'AT_RISK'">
                 <td class="titan-table-cell text-xs text-slate-500">#{{ job.id.substring(0, 8) }}</td>
                 <td class="titan-table-cell font-bold text-white">{{ job.equipmentTag }}</td>
                 <td class="titan-table-cell">{{ job.operatorName }}</td>
@@ -76,7 +112,6 @@
                   @switch (job.status) {
                     @case ('ACTIVE') { <span class="titan-badge-success"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active</span> }
                     
-                    <!-- NEW: The Watchdog Warning -->
                     @case ('AT_RISK') { 
                       <span class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded bg-red-900/30 text-red-500 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse">
                         ⚠️ Maint. Conflict
@@ -101,7 +136,6 @@
                 <td class="titan-table-cell text-slate-400 text-xs">{{ job.startDate | date:'MMM d, y, h:mm a' }}</td>
                 
                 <td class="titan-table-cell text-right space-x-2">
-                  <!-- Both SCHEDULED, PENDING, and AT_RISK can be Activated or Cancelled -->
                   @if (job.status === 'SCHEDULED' || job.status === 'PENDING' || job.status === 'AT_RISK') {
                     <button (click)="activateJob(job.id)" 
                             class="text-[10px] uppercase font-bold tracking-wider bg-emerald-600/20 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 px-3 py-1.5 rounded transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
@@ -112,12 +146,11 @@
                       ✕ Cancel
                     </button>
                   } 
-                  <!-- ACTIVE jobs can be Completed or Cancelled -->
                   @else if (job.status === 'ACTIVE') {
                     <button (click)="openCompleteDrawer(job.id, job.startEngineHours)" 
-          class="text-[10px] uppercase font-bold tracking-wider bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white border border-blue-500/30 px-3 py-1.5 rounded transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
-    ■ Complete
-  </button>
+                            class="text-[10px] uppercase font-bold tracking-wider bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white border border-blue-500/30 px-3 py-1.5 rounded transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
+                      ■ Complete
+                    </button>
                     <button (click)="cancelJob(job.id)" 
                             class="text-[10px] uppercase font-bold tracking-wider bg-red-600/20 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/30 px-3 py-1.5 rounded transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
                       ✕ Cancel

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
+import { Component, inject, OnInit, signal, viewChild, computed } from '@angular/core';
 import { DatePipe, CurrencyPipe, CommonModule } from '@angular/common';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -23,10 +23,33 @@ export class MaintenanceDashboard implements OnInit {
   readonly drawer = viewChild.required(MaintenanceFormDrawer);
   readonly shopDrawer = viewChild.required(SendToShopDrawer);
 
+  // NEW: Dual Search Engine
+  readonly searchQuery = signal<string>('');
+  
+  readonly filteredRoster = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    if (!query) return this.activeRoster();
+    return this.activeRoster().filter(asset => asset.assetTag.toLowerCase().includes(query));
+  });
+
+  readonly filteredLogs = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    if (!query) return this.logs();
+    return this.logs().filter(log => 
+      log.assetTag.toLowerCase().includes(query) ||
+      log.serviceType.toLowerCase().includes(query)
+    );
+  });
+
   ngOnInit(): void {
     this.fetchDashboardData();
   }
 
+  updateSearch(event: Event): void {
+    this.searchQuery.set((event.target as HTMLInputElement).value);
+  }
+
+  // ... KEEP REST OF FILE EXACTLY THE SAME (fetchDashboardData, getBadgeClass, etc) ...
   fetchDashboardData(): void {
     this.isLoading.set(true);
     

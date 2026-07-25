@@ -1,8 +1,8 @@
 <div class="p-8 h-full flex flex-col space-y-8 animate-fade-in-up">
   
-  <!-- Header with PERMANENT BUTTONS -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
-    <div>
+  <!-- UPGRADED HEADER WITH SEARCH -->
+  <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+    <div class="whitespace-nowrap">
       <h1 class="text-2xl font-black text-white uppercase tracking-wider flex items-center gap-3">
         <span class="p-2 bg-amber-500/10 text-amber-400 rounded-lg shadow-[0_0_15px_rgba(245,158,11,0.2)]">🛠️</span>
         Fleet Maintenance
@@ -10,19 +10,34 @@
       <p class="text-sm text-slate-400 mt-1">Active shop roster and historical service logs.</p>
     </div>
     
+    <!-- SEARCH BAR -->
+    <div class="relative w-full max-w-md xl:ml-auto">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <span class="text-slate-500 opacity-70">🔍</span>
+      </div>
+      <input 
+        type="text" 
+        [value]="searchQuery()"
+        (input)="updateSearch($event)"
+        class="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg pl-10 pr-4 py-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 font-mono shadow-inner"
+        placeholder="Search asset tags or service types..."
+      >
+      @if (searchQuery()) {
+        <button (click)="searchQuery.set('')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white transition-colors cursor-pointer">✕</button>
+      }
+    </div>
+
     <div class="flex items-center gap-3">
-      <!-- NEW: Permanent Send to Shop Button -->
       <button 
         (click)="shopDrawer().open()" 
-        class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-500/50 text-white rounded font-bold transition-all duration-300 cursor-pointer flex items-center gap-2 text-sm uppercase tracking-wider">
+        class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-500/50 text-white rounded font-bold transition-all duration-300 cursor-pointer flex items-center gap-2 text-sm uppercase tracking-wider whitespace-nowrap">
         <span class="text-amber-500">⚙️</span> Send to Shop
       </button>
 
-      <!-- Existing Log Complete Button -->
       <button 
         (click)="drawer().open()" 
-        class="titan-btn-primary px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold transition-all duration-300 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 cursor-pointer flex items-center gap-2 text-sm uppercase tracking-wider">
-        <span class="text-lg leading-none">+</span> Log Service Complete
+        class="titan-btn-primary px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold transition-all duration-300 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 cursor-pointer flex items-center gap-2 text-sm uppercase tracking-wider whitespace-nowrap">
+        <span class="text-lg leading-none">+</span> Log Complete
       </button>
     </div>
   </div>
@@ -38,17 +53,18 @@
     <div>
       <h2 class="text-xs font-black uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-        Currently In Shop ({{ activeRoster().length }})
+        Currently In Shop ({{ filteredRoster().length }})
       </h2>
       
-      @if (activeRoster().length === 0) {
+      @if (filteredRoster().length === 0) {
         <div class="bg-slate-900/50 border border-slate-800 border-dashed rounded-xl p-8 text-center">
           <p class="text-sm font-black text-slate-400 uppercase tracking-wider">All Assets Operational</p>
           <p class="text-xs text-slate-500 mt-2 font-mono">No equipment is currently locked in maintenance.</p>
         </div>
       } @else {
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          @for (asset of activeRoster(); track asset.equipmentId) {
+          <!-- THE UPDATED LOOP: Now uses filteredRoster() -->
+          @for (asset of filteredRoster(); track asset.equipmentId) {
             <div class="bg-slate-900 border border-amber-900/30 rounded-xl p-5 shadow-lg relative overflow-hidden group hover:border-amber-700/50 transition-colors">
               <div class="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
               <div class="flex justify-between items-start mb-3">
@@ -56,7 +72,6 @@
                 <span class="px-2 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[10px] uppercase font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)]">Shop Locked</span>
               </div>
               
-              <!-- NEW: Dual Timeline Display -->
               <div class="pt-3 border-t border-slate-800 space-y-2">
                 <div>
                   <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-0.5">Repair Started</p>
@@ -94,7 +109,8 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/50 font-mono">
-              @for (log of logs(); track log.id) {
+              <!-- THE UPDATED LOOP: Now uses filteredLogs() -->
+              @for (log of filteredLogs(); track log.id) {
                 <tr class="hover:bg-slate-800/60 transition-colors group">
                   <td class="px-6 py-4 text-slate-400 text-xs">{{ log.serviceDate | date:'mediumDate' }}</td>
                   <td class="px-6 py-4 font-bold text-white group-hover:text-blue-400 transition-colors">{{ log.assetTag }}</td>

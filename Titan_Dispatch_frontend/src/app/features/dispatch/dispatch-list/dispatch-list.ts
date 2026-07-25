@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
+import { Component, inject, OnInit, signal, viewChild, computed } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DispatchService } from '../../../core/services/dispatch';
@@ -25,8 +25,53 @@ export class DispatchList implements OnInit {
   readonly isDrawerOpen = signal<boolean>(false);
   readonly completeDrawer = viewChild.required(CompleteDispatchDrawer);
 
+  // NEW: Search Signal
+  readonly searchQuery = signal<string>('');
+
+  readonly atRiskCount = computed(() => {
+    return this.dispatches().filter(d => d.status === 'AT_RISK').length;
+  });
+
+  // UPGRADED: The Intelligent Sorting & Filtering Engine
+  readonly sortedDispatches = computed(() => {
+    let list = [...this.dispatches()];
+    const query = this.searchQuery().toLowerCase().trim();
+    const now = Date.now();
+
+    // 1. Apply Search Filter first (Blazing fast client-side search)
+    if (query) {
+      list = list.filter(d => 
+        d.equipmentTag.toLowerCase().includes(query) ||
+        d.projectCode.toLowerCase().includes(query) ||
+        d.operatorName.toLowerCase().includes(query) ||
+        d.id.toLowerCase().includes(query)
+      );
+    }
+
+    // 2. Apply Sorting Logic
+    return list.sort((a, b) => {
+      if (a.status === 'AT_RISK' && b.status !== 'AT_RISK') return -1;
+      if (b.status === 'AT_RISK' && a.status !== 'AT_RISK') return 1;
+
+      const isAInactive = a.status === 'COMPLETED' || a.status === 'CANCELLED';
+      const isBInactive = b.status === 'COMPLETED' || b.status === 'CANCELLED';
+      if (isAInactive && !isBInactive) return 1;
+      if (!isAInactive && isBInactive) return -1;
+
+      const diffA = Math.abs(new Date(a.startDate).getTime() - now);
+      const diffB = Math.abs(new Date(b.startDate).getTime() - now);
+      return diffA - diffB;
+    });
+  });
+
   ngOnInit(): void {
     this.fetchDispatches();
+  }
+
+  // NEW: Helper to update the search signal on keystroke
+  updateSearch(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchQuery.set(input.value);
   }
 
   isOverdue(dateString: string): boolean {
@@ -89,6 +134,4 @@ export class DispatchList implements OnInit {
   dismissToast(): void {
     this.toastMessage.set(null);
   }
-
-  
 }

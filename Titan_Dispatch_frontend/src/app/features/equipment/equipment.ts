@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
+import { Component, inject, OnInit, signal, viewChild, computed } from '@angular/core';
 import { DecimalPipe, CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { EquipmentService } from '../../core/services/equipment.service';
@@ -15,28 +15,36 @@ import { EquipmentFormDrawer } from './components/equipment-form-drawer/equipmen
 export class Equipment implements OnInit {
   private readonly equipmentService = inject(EquipmentService);
 
-  // Directly track the service's computed data projection signal
   readonly inventory = this.equipmentService.equipment;
 
-  // Visual state controls
   readonly isLoading = signal<boolean>(false);
   readonly toastMessage = signal<{ detail: string; status: number } | null>(null);
-
-  // Grab the drawer component from the template
   readonly drawer = viewChild.required(EquipmentFormDrawer);
+
+  // NEW: Search Engine
+  readonly searchQuery = signal<string>('');
+  readonly filteredInventory = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    if (!query) return this.inventory();
+    return this.inventory().filter(asset => 
+      asset.assetTag.toLowerCase().includes(query) ||
+      asset.status.toLowerCase().includes(query)
+    );
+  });
 
   ngOnInit(): void {
     this.loadInventory();
   }
 
+  updateSearch(event: Event): void {
+    this.searchQuery.set((event.target as HTMLInputElement).value);
+  }
+
   loadInventory(): void {
     this.isLoading.set(true);
     this.toastMessage.set(null);
-
     this.equipmentService.getInventory().subscribe({
-      next: () => {
-        this.isLoading.set(false);
-      },
+      next: () => this.isLoading.set(false),
       error: (err: HttpErrorResponse) => {
         this.isLoading.set(false);
         this.handleError(err);
@@ -50,7 +58,7 @@ export class Equipment implements OnInit {
       this.equipmentService.deleteEquipment(id).subscribe({
         next: () => {
           this.toastMessage.set({ detail: 'Asset successfully archived.', status: 200 });
-          this.loadInventory(); // Refresh the grid
+          this.loadInventory();
         },
         error: (err: HttpErrorResponse) => {
           this.isLoading.set(false);
@@ -65,12 +73,8 @@ export class Equipment implements OnInit {
       const problem = err.error as ProblemDetail;
       this.toastMessage.set({ detail: problem.detail, status: problem.status });
     } else {
-      this.toastMessage.set({ 
-        detail: 'Failed to synchronize heavy machinery logistics matrix.', 
-        status: err.status || 500 
-      });
+      this.toastMessage.set({ detail: 'Failed to synchronize heavy machinery logistics matrix.', status: err.status || 500 });
     }
-    
     setTimeout(() => this.toastMessage.set(null), 6000);
   }
 
