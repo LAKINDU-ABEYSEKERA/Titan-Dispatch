@@ -32,6 +32,7 @@ public class OperatorAdminService {
                 .firstName(cmd.firstName())
                 .lastName(cmd.lastName())
                 .licenseExpiration(cmd.licenseExpiration())
+                .hourlyRate(cmd.hourlyRate())
                 .build();
 
         return mapToResponse(operatorRepo.save(operator));

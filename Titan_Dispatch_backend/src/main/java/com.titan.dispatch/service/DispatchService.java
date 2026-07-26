@@ -10,11 +10,7 @@ import com.titan.dispatch.domain.entity.OutboxEvent;
 import com.titan.dispatch.domain.enums.DispatchStatus;
 import com.titan.dispatch.domain.enums.EquipmentStatus;
 import com.titan.dispatch.domain.policy.SafetyInterlockPolicy;
-import com.titan.dispatch.repository.DispatchAllocationRepository;
-import com.titan.dispatch.repository.EquipmentRepository;
-import com.titan.dispatch.repository.JobSiteRepository;
-import com.titan.dispatch.repository.OperatorRepository;
-import com.titan.dispatch.repository.OutboxEventRepository;
+import com.titan.dispatch.repository.*;
 import com.titan.dispatch.web.dto.CompleteDispatchCommand;
 import com.titan.dispatch.web.dto.CreateDispatchCommand;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -24,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -40,13 +37,14 @@ public class DispatchService {
     private final OutboxEventRepository outboxRepo;
     private final ObjectMapper objectMapper;
     private final MeterRegistry meterRegistry;
+    private final FuelLogRepository fuelLogRepo;
 
     @Transactional
     public DispatchAllocation createDispatch(CreateDispatchCommand command) {
         Equipment equipment = equipmentRepo.findById(command.equipmentId()).orElseThrow();
         Operator operator = operatorRepo.findById(command.operatorId()).orElseThrow();
 
-        // Upgraded validation passes both dates
+        // Validate dates against Operator License, Equipment Insurance, and overlapping active schedules
         safetyInterlockPolicy.validate(equipment, operator, command.startDate(), command.expectedEndDate());
 
         // Check if the job is starting today or in the future
@@ -54,8 +52,7 @@ public class DispatchService {
                 ? DispatchStatus.SCHEDULED
                 : DispatchStatus.ACTIVE;
 
-        // THE CRITICAL FIX: We ONLY lock the equipment if the job is starting RIGHT NOW.
-        // If the job is SCHEDULED for the future, the vehicle status remains AVAILABLE.
+        // If the job is starting RIGHT NOW, physically lock the equipment
         if (initialStatus == DispatchStatus.ACTIVE) {
             equipment.setStatus(EquipmentStatus.DISPATCHED);
         }
@@ -81,14 +78,13 @@ public class DispatchService {
     public void activateDispatch(UUID dispatchId) {
         DispatchAllocation dispatch = dispatchRepo.findById(dispatchId).orElseThrow();
 
-        // ADDED: Allow AT_RISK jobs to be forced into ACTIVE if the dispatcher overrides
         if (dispatch.getStatus() != DispatchStatus.SCHEDULED && dispatch.getStatus() != DispatchStatus.PENDING && dispatch.getStatus() != DispatchStatus.AT_RISK) {
             throw new IllegalStateException("Only scheduled, pending, or at-risk dispatches can be activated.");
         }
 
         dispatch.setStatus(DispatchStatus.ACTIVE);
 
-        // THE FIX: Now that the job is starting, physically lock the equipment
+        // Now that the job is starting, physically lock the equipment
         Equipment equipment = dispatch.getEquipment();
         equipment.setStatus(EquipmentStatus.DISPATCHED);
         equipmentRepo.save(equipment);
@@ -127,6 +123,7 @@ public class DispatchService {
         }
 
         Equipment equipment = dispatch.getEquipment();
+        Operator operator = dispatch.getOperator();
         JobSite jobSite = jobSiteRepo.findById(dispatch.getJobSiteId()).orElseThrow();
 
         BigDecimal startHours = dispatch.getStartEngineHours();
@@ -139,8 +136,24 @@ public class DispatchService {
         }
 
         BigDecimal hoursUsed = command.endHours().subtract(startHours);
-        BigDecimal totalJobCost = hoursUsed.multiply(equipment.getInternalHourlyRate());
 
+        // THE QUAD-FACTOR COSTING ENGINE
+        BigDecimal equipmentCost = hoursUsed.multiply(equipment.getInternalHourlyRate());
+        BigDecimal laborCost = hoursUsed.multiply(operator.getHourlyRate());
+        BigDecimal fuelCost = fuelLogRepo.calculateFuelCostForPeriod(
+                equipment.getId(),
+                dispatch.getStartDate().toLocalDate(),
+                LocalDate.now()
+        );
+
+        // Heavy Transport (Mob/Demob) Logic
+        BigDecimal transportCost = dispatch.getRequiresHeavyTransport()
+                ? jobSite.getHeavyTransportRate()
+                : BigDecimal.ZERO;
+
+        BigDecimal totalJobCost = equipmentCost.add(laborCost).add(fuelCost).add(transportCost);
+
+        // Apply ACID compliance: Update Job Site Ledger
         jobSite.setAccumulatedCost(jobSite.getAccumulatedCost().add(totalJobCost));
 
         if (equipment.getCurrentEngineHours() == null || command.endHours().compareTo(equipment.getCurrentEngineHours()) > 0) {
@@ -148,7 +161,6 @@ public class DispatchService {
         }
 
         equipment.setStatus(EquipmentStatus.AVAILABLE);
-
         dispatch.setStatus(DispatchStatus.COMPLETED);
         dispatch.setEndDate(LocalDateTime.now());
 
@@ -169,7 +181,8 @@ public class DispatchService {
             meterRegistry.counter("titan.dispatch.completed").increment();
             meterRegistry.summary("titan.dispatch.revenue").record(totalJobCost.doubleValue());
 
-            log.info("Dispatch {} completed. Cost: {}. Outbox event queued.", dispatchId, totalJobCost);
+            log.info("Dispatch {} finalized. Eqpt: ${} | Labor: ${} | Fuel: ${} | Transport: ${}. Total: ${}",
+                    dispatchId, equipmentCost, laborCost, fuelCost, transportCost, totalJobCost);
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize dispatch completion event", e);
             throw new RuntimeException("System error securing dispatch completion logic");

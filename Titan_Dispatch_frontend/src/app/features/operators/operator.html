@@ -1,6 +1,5 @@
 <div class="space-y-6 animate-fade-in-up h-full flex flex-col p-8">
   
-  <!-- UPGRADED HEADER WITH SEARCH -->
   <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
     <div class="whitespace-nowrap">
       <h1 class="text-2xl font-black text-white uppercase tracking-wider flex items-center gap-3">
@@ -10,7 +9,6 @@
       <p class="text-xs text-slate-400 font-mono mt-1">Personnel and license management</p>
     </div>
 
-    <!-- SEARCH BAR -->
     <div class="relative w-full max-w-md xl:ml-auto">
       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         <span class="text-slate-500 opacity-70">🔍</span>
@@ -40,6 +38,7 @@
             <th class="px-6 py-5">Personnel ID</th>
             <th class="px-6 py-5">Last Name</th>
             <th class="px-6 py-5">First Name</th>
+            <th class="px-6 py-5">Wage</th> <!-- ADDED COLUMN -->
             <th class="px-6 py-5">License Status</th>
             <th class="px-6 py-5 text-right">Actions</th>
           </tr>
@@ -47,7 +46,7 @@
         <tbody class="divide-y divide-slate-800/50 font-mono">
           @if (isLoading()) {
             <tr>
-              <td colspan="5" class="text-center py-16">
+              <td colspan="6" class="text-center py-16">
                 <div class="flex flex-col items-center justify-center space-y-4 animate-pulse">
                   <div class="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
                   <p class="text-sm font-bold text-slate-500 uppercase tracking-widest">Compiling Roster...</p>
@@ -65,6 +64,8 @@
                 </td>
                 <td class="px-6 py-4 font-bold text-white uppercase tracking-wide group-hover:text-indigo-400 transition-colors">{{ op.lastName }}</td>
                 <td class="px-6 py-4 text-slate-300">{{ op.firstName }}</td>
+                <!-- ADDED CELL -->
+                <td class="px-6 py-4 font-bold text-emerald-400">{{ op.hourlyRate | currency:'USD':'symbol':'1.2-2' }}/hr</td>
                 <td class="px-6 py-4">
                   @if (isLicenseExpired(op.licenseExpiration)) {
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded bg-red-500/10 text-red-400 border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse">
@@ -87,7 +88,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="text-center py-16 text-slate-500 font-mono text-xs">
+                <td colspan="6" class="text-center py-16 text-slate-500 font-mono text-xs">
                   <div class="flex flex-col items-center opacity-60">
                     <span class="text-4xl mb-3">🚷</span>
                     <p class="text-sm font-bold uppercase tracking-widest text-slate-400">No Match Found</p>

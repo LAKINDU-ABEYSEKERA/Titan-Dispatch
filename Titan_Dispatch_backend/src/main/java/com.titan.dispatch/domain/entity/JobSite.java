@@ -40,4 +40,7 @@ public class JobSite extends Auditable {
 
     @Column(name = "accumulated_cost", precision = 12, scale = 2, nullable = false)
     private BigDecimal accumulatedCost;
+
+    @Column(name = "heavy_transport_rate", precision = 10, scale = 2, nullable = false)
+    private BigDecimal heavyTransportRate;
 }

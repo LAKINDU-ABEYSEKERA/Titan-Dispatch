@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal, viewChild, computed } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, CurrencyPipe } from '@angular/common'; // <-- ADDED CurrencyPipe
 import { HttpErrorResponse } from '@angular/common/http';
 import { OperatorService, OperatorResponse } from '../../core/services/operator.service';
 import { OperatorFormDrawer } from '../operators/components/operator-form-drawer/operator-form-drawer';
@@ -7,7 +7,7 @@ import { OperatorFormDrawer } from '../operators/components/operator-form-drawer
 @Component({
   selector: 'app-operator-list',
   standalone: true,
-  imports: [DatePipe, OperatorFormDrawer],
+  imports: [DatePipe, CurrencyPipe, OperatorFormDrawer], // <-- ADDED CurrencyPipe
   templateUrl: './operator.html',
   styles: [`
     @keyframes slideFadeIn {
@@ -19,7 +19,7 @@ import { OperatorFormDrawer } from '../operators/components/operator-form-drawer
     }
     .animate-row {
       animation: slideFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      opacity: 0; /* Starts hidden, animation reveals it */
+      opacity: 0;
     }
   `]
 })
@@ -31,7 +31,6 @@ export class Operator implements OnInit {
   
   readonly formDrawer = viewChild.required(OperatorFormDrawer);
 
-  // NEW: Search Engine
   readonly searchQuery = signal<string>('');
 
   readonly filteredOperators = computed(() => {

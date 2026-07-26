@@ -31,28 +31,28 @@ public class DispatchController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
     @PutMapping("/{id}/activate")
-    public ResponseEntity<Void> activateDispatch(@PathVariable UUID id) {
+    public ResponseEntity<Void> activateDispatch(@PathVariable("id") UUID id) {
         dispatchService.activateDispatch(id);
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
     @PutMapping("/{id}/complete")
-    public ResponseEntity<Void> completeDispatch(@PathVariable UUID id, @Valid @RequestBody CompleteDispatchCommand request) {
+    public ResponseEntity<Void> completeDispatch(@PathVariable("id") UUID id, @Valid @RequestBody CompleteDispatchCommand request) {
         dispatchService.completeDispatch(id, request);
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<Void> cancelDispatch(@PathVariable UUID id) {
+    public ResponseEntity<Void> cancelDispatch(@PathVariable("id") UUID id) {
         dispatchService.cancelDispatch(id);
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCH')")
     @GetMapping
-    public ResponseEntity<List<DispatchSummaryResponse>> getDispatches(@RequestParam(required = false) DispatchStatus status) {
+    public ResponseEntity<List<DispatchSummaryResponse>> getDispatches(@RequestParam(value = "status", required = false) DispatchStatus status) {
         return ResponseEntity.ok(queryService.getDispatches(status));
     }
 }

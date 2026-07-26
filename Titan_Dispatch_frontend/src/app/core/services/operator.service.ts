@@ -7,18 +7,21 @@ export interface OperatorResponse {
   firstName: string;
   lastName: string;
   licenseExpiration: string;
+  hourlyRate: number; // <-- ADDED
 }
 
 export interface CreateOperatorCommand {
   firstName: string;
   lastName: string;
   licenseExpiration: string;
+  hourlyRate: number; // <-- ADDED
 }
 
 export interface UpdateOperatorCommand {
   firstName: string;
   lastName: string;
   licenseExpiration: string;
+  hourlyRate: number; // <-- ADDED
 }
 
 @Injectable({ providedIn: 'root' })

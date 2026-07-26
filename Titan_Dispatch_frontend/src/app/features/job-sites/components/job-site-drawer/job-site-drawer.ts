@@ -41,7 +41,8 @@ export class JobSiteDrawer {
     siteName: ['', [Validators.required]],
     latitude: [0, [Validators.required]],
     longitude: [0, [Validators.required]],
-    geofenceRadiusMeters: [500, [Validators.required, Validators.min(1)]]
+    geofenceRadiusMeters: [500, [Validators.required, Validators.min(1)]],
+    heavyTransportRate: [500.00, [Validators.required, Validators.min(0)]] // NEW FIELD
   });
 
   constructor() {
@@ -51,7 +52,7 @@ export class JobSiteDrawer {
         this.form.patchValue(site);
         this.form.controls.projectCode.disable();
       } else {
-        this.form.reset({ geofenceRadiusMeters: 500 });
+        this.form.reset({ geofenceRadiusMeters: 500, heavyTransportRate: 500.00 });
         this.form.controls.projectCode.enable();
       }
     });

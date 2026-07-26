@@ -24,7 +24,8 @@ export class OperatorFormDrawer {
   form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required]],
     lastName: ['', [Validators.required]],
-    licenseExpiration: ['', [Validators.required]]
+    licenseExpiration: ['', [Validators.required]],
+    hourlyRate: [0.00, [Validators.required, Validators.min(0)]] // <-- ADDED
   });
 
   open(operator?: OperatorResponse) {
@@ -34,11 +35,12 @@ export class OperatorFormDrawer {
       this.form.patchValue({
         firstName: operator.firstName,
         lastName: operator.lastName,
-        licenseExpiration: operator.licenseExpiration
+        licenseExpiration: operator.licenseExpiration,
+        hourlyRate: operator.hourlyRate // <-- ADDED
       });
     } else {
       this.activeOperatorId.set(null);
-      this.form.reset();
+      this.form.reset({ hourlyRate: 0.00 }); // <-- ADDED DEFAULT
     }
     this.isOpen.set(true);
   }

@@ -1,6 +1,6 @@
 <div class="p-8 h-full flex flex-col">
   
-  <!-- UPGRADED HEADER WITH SEARCH -->
+  <!-- HEADER WITH SEARCH -->
   <div class="flex flex-col xl:flex-row xl:items-center justify-between mb-8 gap-4 animate-fade-in">
     <div class="whitespace-nowrap">
       <h1 class="text-2xl font-black text-white uppercase tracking-wider flex items-center gap-3">
@@ -67,7 +67,6 @@
               </td>
             </tr>
           } @else {
-            <!-- THE UPDATED LOOP: Now uses filteredJobSites() -->
             @for (site of filteredJobSites(); track site.id; let i = $index) {
               <tr 
                 class="animate-row group hover:bg-slate-800/60 transition-all duration-300" 
@@ -86,14 +85,19 @@
                   </span>
                 </td>
                 <td class="px-6 py-4 text-right">
-                  <span class="font-mono font-bold text-red-400 group-hover:text-red-300 group-hover:drop-shadow-[0_0_8px_rgba(248,113,113,0.5)] transition-all">
+                  <span class="font-mono font-black text-emerald-400 group-hover:text-emerald-300 group-hover:drop-shadow-[0_0_8px_rgba(52,211,153,0.5)] transition-all">
                     ${{ site.accumulatedCost | number:'1.2-2' }}
                   </span>
                 </td>
-                <td class="px-6 py-4 text-right">
+                <td class="px-6 py-4 text-right space-x-2 flex justify-end gap-2">
+                  <button 
+                    (click)="exportLedger(site)" 
+                    class="text-emerald-500 hover:text-white bg-emerald-900/20 hover:bg-emerald-600 border border-transparent hover:border-emerald-500 px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer whitespace-nowrap">
+                    Export Ledger
+                  </button>
                   <button 
                     (click)="openDrawer(site)" 
-                    class="text-slate-500 hover:text-white bg-slate-800/50 hover:bg-blue-600 border border-transparent hover:border-blue-500 px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-sm hover:shadow-[0_0_12px_rgba(37,99,235,0.4)]">
+                    class="text-slate-500 hover:text-white bg-slate-800/50 hover:bg-blue-600 border border-transparent hover:border-blue-500 px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer whitespace-nowrap">
                     Configure
                   </button>
                 </td>
@@ -104,6 +108,17 @@
       </table>
     </div>
   </div>
+
+  @if (toastMessage()) {
+    <div class="fixed bottom-6 right-6 max-w-sm w-full bg-slate-950 border-l-4 border-emerald-500 text-white p-4 rounded-lg shadow-2xl flex items-start gap-3 border border-slate-800" style="animation: var(--animate-fade-in-up); z-index: 60;">
+      <span class="text-emerald-500 font-bold text-lg leading-none">✅</span>
+      <div class="flex-1">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">System Message</h3>
+        <p class="mt-1 text-xs text-slate-300 font-medium leading-relaxed">{{ toastMessage()?.detail }}</p>
+      </div>
+      <button (click)="dismissToast()" class="text-slate-500 hover:text-white transition-colors cursor-pointer text-sm">✕</button>
+    </div>
+  }
 </div>
 
 <app-job-site-drawer

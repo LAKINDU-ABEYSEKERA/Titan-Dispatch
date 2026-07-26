@@ -1,0 +1,1 @@
+ALTER TABLE job_site_aud ADD COLUMN heavy_transport_rate NUMERIC(10, 2);

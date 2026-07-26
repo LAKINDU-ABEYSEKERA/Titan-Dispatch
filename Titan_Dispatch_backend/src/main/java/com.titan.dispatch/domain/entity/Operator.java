@@ -4,6 +4,7 @@ import com.titan.dispatch.domain.enums.OperatorStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -34,4 +35,7 @@ public class Operator extends Auditable {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private OperatorStatus status = OperatorStatus.ACTIVE;
+
+    @Column(name = "hourly_rate", precision = 10, scale = 2, nullable = false)
+    private BigDecimal hourlyRate;
 }

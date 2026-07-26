@@ -59,6 +59,12 @@
           class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono" />
       </div>
 
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Heavy Transport Mob/Demob Fee ($)</label>
+        <input type="number" step="0.01" formControlName="heavyTransportRate" 
+          class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono" />
+      </div>
+
       <div class="pt-6 border-t border-slate-800 flex justify-end gap-3">
         <button type="button" (click)="closeDrawer()" class="titan-btn-secondary px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded text-sm font-bold transition-colors cursor-pointer">Cancel</button>
         <button type="submit" [disabled]="isSubmitting()" class="titan-btn-primary px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-bold disabled:opacity-50 transition-colors cursor-pointer">
